@@ -22,7 +22,7 @@
             }
             
             .responsive-picture {
-                width: 100%;
+                max-width: 75%;
             }
             
             .rounded-picture {
@@ -31,9 +31,19 @@
                 border-radius: 50%;
             }
             
+            .rotate:hover {
+                animation: coinspin 1s;
+            }
+            
+            /* based off of documentation here: https://www.w3schools.com/cssref/css3_pr_animation-keyframes.asp*/
+            @keyframes coinspin {
+                from { transform: rotateY(0deg); }
+                to { transform: rotateY(360deg); }
+            }
+            
             ol {
                 background: lightgray;
-                /*border: 2px solid lightgray;*/
+                padding-right: 5px;
             }
             
             li {
@@ -50,15 +60,25 @@
     </head>
     <body>
         <div class="container-fluid">
-            <h1 id="title" class="text-center">Joshua Castor</h1>
+            <div class="row">
+                <h1 id="title" class="text-center">Joshua Castor</h1>
+            </div>
             
-            <img class="responsive-picture rounded-picture" alt="My Face" src="https://www.evl.uic.edu/resizedImages/1280x720-jcastor.jpg">
-            <h2>Top 3 Favorite Projects</h2>
-            <ol>
-                <li><a href="https://bluuarc.github.io/vast-challenge-2017/challenge-2/" target="_blank">VAST Challenge 2017: MC2</a></li>
-                <li><a href="https://bluuarc.github.io/bubbles-tactile-demo/" target="_blank">Bubble Tactile Demo</a></li>
-                <li><a href="https://bluuarc.github.io/" target="_blank">My Website</a></li>
-            </ol>
+            <div class="row text-center">
+                <img class="responsive-picture rounded-picture rotate" alt="My Face" src="https://www.evl.uic.edu/resizedImages/1280x720-jcastor.jpg">
+            </div>
+            
+            <div class="row text-center">
+                <h2>Top 3 Favorite Projects</h2>
+            </div>
+            
+            <div class="row">
+                <ol>
+                    <li><a href="https://bluuarc.github.io/vast-challenge-2017/challenge-2/" target="_blank">VAST Challenge 2017: MC2</a></li>
+                    <li><a href="https://bluuarc.github.io/bubbles-tactile-demo/" target="_blank">Bubble Tactile Demo</a></li>
+                    <li><a href="https://bluuarc.github.io/" target="_blank">My Website</a></li>
+                </ol>
+            </div>
         </div>
     </body>
 </html>
