@@ -1,3 +1,12 @@
 .project-entry:hover {
     background-color: lightgray;
 }
+
+
+.no-padding {
+    padding: 0;
+}
+
+.no-margin {
+    margin: 0;
+}

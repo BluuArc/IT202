@@ -25,8 +25,8 @@
             <b class="col-md-6">IT202 Assignments</b><span class="col-md-6 text-right">Updated {{ updateTime }}</span>
           </div>
         </div>
-        <div class="panel-body">
-          <div class="list-group">
+        <div class="panel-body no-padding">
+          <div class="list-group no-margin">
             <project-item v-for="f in folders" :project="f" :key="f.name"></project-item>
           </div>
         </div>
@@ -77,8 +77,11 @@
                   return;
                 }
                 
+                const blacklisted_folders = ['js', 'css'];
+                
                 for(let d of data){
-                  if(d.type !== "dir") continue;
+                  if(d.type !== "dir" || blacklisted_folders.indexOf((d.path)) > -1)
+                    continue;
                   
                   app.folders.push(d);
                 }
