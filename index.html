@@ -9,6 +9,7 @@
     <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">-->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://bluuarc.github.io/css/bacc.css" type="text/css" />
+    <link rel="stylesheet" href="css/it202.css" type="text/css" />
     
     <style>
       /*body {*/
@@ -18,8 +19,18 @@
   </head>
   <body>
     <div class="container-fluid body-content" id="app">
-      <h1>List of IT202 Assignments</h1>
-      <ul id="assignment-list"></ul>
+      <div class="panel panel-primary">
+        <div class="panel-heading">
+          <div class="row">
+            <b class="col-md-6">IT202 Assignments</b><span class="col-md-6 text-right">Updated {{ updateTime }}</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="list-group">
+            <project-item v-for="f in folders" :project="f" :key="f.name"></project-item>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- jQuery first, then Tether, then Bootstrap JS. -->
@@ -28,30 +39,48 @@
     
     
     <script type="text/javascript">
-      // var app = new Vue({
-      //   el: "#app",
-      //   data: {
-      //     test: "test value"
-      //   }
-      // });
+      Vue.component('project-item', {
+        props: ['project'],
+        template: '<a :href="project.path" target="_blank" class="list-group-item">{{ project.name }}</a>'
+      })
+      var app = new Vue({
+        el: "#app",
+        data: {
+          folders: [],
+          updateTimeData: new Date("1/1/1990")
+        },
+        computed: {
+          updateTime: function(){
+            return new Date(this.updateTimeData).toDateString();
+          }
+        }
+      });
       
        (function() { 
           onLoad('Projects', function(){
-              d3.json("https://api.github.com/repos/BluuArc/IT202/contents/", (err,data) => {
+              
+            
+            //get repo info
+            d3.json("https://api.github.com/repos/BluuArc/IT202", (err,data) => {
+              if(err) {
+                  console.log(err);
+                  return;
+                }
+                
+                app.updateTimeData = data.updated_at;
+            });
+            
+            //get folder list
+            d3.json("https://api.github.com/repos/BluuArc/IT202/contents/", (err,data) => {
                 if(err) {
                   console.log(err);
                   return;
                 }
                 
-                let container = d3.select('#assignment-list');
-                
                 for(let d of data){
                   if(d.type !== "dir") continue;
                   
-                  container.append('li').append('a')
-                    .attr('href', `http://bluuarc.github.io/IT202/${d.path}`)
-                    .text(d.name)
-                    .attr("target","_blank");
+                  app.folders.push(d);
                 }
               })
           }); 
