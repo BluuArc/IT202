@@ -249,9 +249,9 @@
       <h2>About Notar Eel Company</h2><br>
       <h4>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</h4><br>
       <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.</p>
-      <br><button class="btn btn-default btn-lg">Get in Touch</button>
+      <br><a href="#contact"><button class="btn btn-default btn-lg">Get in Touch</button></a>
     </div>
-    <div class="col-sm-4">
+    <div class="col-sm-4 text-center">
       <span class="glyphicon glyphicon-signal logo"></span>
     </div>
   </div>
@@ -259,7 +259,7 @@
 
 <div class="container-fluid bg-grey">
   <div class="row">
-    <div class="col-sm-4">
+    <div class="col-sm-4 text-center">
       <span class="glyphicon glyphicon-globe logo slideanim"></span>
     </div>
     <div class="col-sm-8">
@@ -301,24 +301,6 @@
       <p>Android, iOS, Windows Phone, you name it! Access our stuff on any and all of your mobile device(s). Our service isn't limited to desktops only.</p>
     </div>
   </div>
-  <!--<br><br>-->
-  <!--<div class="row slideanim">-->
-  <!--  <div class="col-sm-4">-->
-  <!--    <span class="glyphicon glyphicon-leaf logo-small"></span>-->
-  <!--    <h4>GREEN</h4>-->
-  <!--    <p>Lorem ipsum dolor sit amet..</p>-->
-  <!--  </div>-->
-  <!--  <div class="col-sm-4">-->
-  <!--    <span class="glyphicon glyphicon-certificate logo-small"></span>-->
-  <!--    <h4>CERTIFIED</h4>-->
-  <!--    <p>Lorem ipsum dolor sit amet..</p>-->
-  <!--  </div>-->
-  <!--  <div class="col-sm-4">-->
-  <!--    <span class="glyphicon glyphicon-wrench logo-small"></span>-->
-  <!--    <h4 style="color:#303030;">HARD WORK</h4>-->
-  <!--    <p>Lorem ipsum dolor sit amet..</p>-->
-  <!--  </div>-->
-  <!--</div>-->
 </div>
 
 <!-- Container (Portfolio Section) -->
@@ -487,11 +469,11 @@
 <div id="googleMap" style="height:400px;width:100%;"></div>
 <script>
 function myMap() {
-var myCenter = new google.maps.LatLng(41.878114, -87.629798);
-var mapProp = {center:myCenter, zoom:12, scrollwheel:false, draggable:false, mapTypeId:google.maps.MapTypeId.ROADMAP};
-var map = new google.maps.Map(document.getElementById("googleMap"),mapProp);
-var marker = new google.maps.Marker({position:myCenter});
-marker.setMap(map);
+  var myCenter = new google.maps.LatLng(41.878114, -87.629798);
+  var mapProp = {center:myCenter, zoom:12, scrollwheel:false, draggable:false, mapTypeId:google.maps.MapTypeId.ROADMAP};
+  var map = new google.maps.Map(document.getElementById("googleMap"),mapProp);
+  var marker = new google.maps.Marker({position:myCenter});
+  marker.setMap(map);
 }
 </script>
 <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyC5wsjBDKHICNiW9vgz9T6Qvd5bI1iQod0&callback=myMap"></script>
