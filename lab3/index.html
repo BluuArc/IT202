@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">-->
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+        #template {
+            display: none;
+        }
+    </style>
+  </head>
+  <body>
+    
+    <h1>Entries</h1>  
+    <!--<ul id="entries">-->
+        
+    <!--</ul>-->
+    
+    <div id="entries">
+        
+    </div>
+    
+    <div class="panel panel-default hidden" id="template">
+     <div class="panel-heading">
+        <h3 class="panel-title">Panel title</h3>
+      </div>
+      <div class="panel-body">
+        Panel content
+      </div>
+    </div>
+
+    <!-- jQuery first, then Tether, then Bootstrap JS. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" crossorigin="anonymous"></script>
+    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>-->
+    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>-->
+    <!-- Latest compiled and minified JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    
+    <script type="text/javascript">
+        function createCrimeEntry(entry){
+            let formattedEntry = $("<li></li>");
+            formattedEntry.append($("<div></div>").addClass("container-fluid"));
+            formattedEntry.append($("<p></p>").html(`<strong>ID:</strong> ${entry.service_request_number}`).addClass("row"));
+            formattedEntry.append($("<p></p>").html(`<b>Address:</b> ${entry.street_address}`).addClass("row"));
+            formattedEntry.append($("<p></p>").html(`<b>Status:</b> ${entry.status}`).addClass("row"));
+            
+            return formattedEntry;
+        }
+        
+        function createCrimePanel(entry){
+            let crimePanel = $("#template").clone();
+            crimePanel.removeClass("hidden")
+                .attr("id",entry.service_request_number)
+                .find(".panel-title")
+                    .text(`Entry ${entry.service_request_number}`)
+                    .end()
+                .find(".panel-body")
+                    .html(`<b>Address:</b> ${entry.street_address}<br><b>Status:</b> ${entry.status}`)
+                    .end();
+                    
+            if(entry.status.toLowerCase().indexOf("complete") > -1){
+                crimePanel.addClass("panel-success");
+            }else{
+                crimePanel.addClass("panel-warning");
+            }
+            
+            return crimePanel;
+        }
+    
+        $(document).ready(function(){
+            // add ?$limit=100 to limit number of entries
+            $.get("https://data.cityofchicago.org/resource/cdmx-wzbz.json?",function(response){
+                $.each(response,(i,d) => {
+                    $("#entries").append(createCrimePanel(d));
+                })
+            });  
+        })
+    </script>
+  </body>
+</html>
