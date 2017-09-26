@@ -5,9 +5,6 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
-    <!--<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">-->
-    <!-- Latest compiled and minified CSS -->
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <style>
         #template {
@@ -16,34 +13,46 @@
     </style>
   </head>
   <body>
-    
-    <h1>Entries</h1>  
-    <!--<ul id="entries">-->
-        
-    <!--</ul>-->
-    
-    <div id="entries">
-        
-    </div>
-    
-    <div class="panel panel-default hidden" id="template">
-     <div class="panel-heading">
-        <h3 class="panel-title">Panel title</h3>
-      </div>
-      <div class="panel-body">
-        Panel content
-      </div>
+    <div class="container">
+        <div class="row text-center">
+            <h1>311 Service Requests: Graffiti Removal</h1>
+        </div>
+        <div class="row text-center">
+            <div class=" col-sm-6 col-md-6 col-lg-6">
+                <h4><a target="_blank" href="https://data.cityofchicago.org/Service-Requests/311-Service-Requests-Graffiti-Removal/hec5-y4x5">Dataset Info</a></h4>
+            </div>
+            <div class=" col-sm-6 col-md-6 col-lg-6">
+                <h4><a target="_blank" href="https://docs.google.com/document/d/1k5EYLgCe5xvCewK4DVuzlSJJXC_8LlnRX7bCdqLNFno/edit">Lab 3 Prompt</a></h4>
+            </div>
+            
+            
+        </div>
+        <div id="results" class="row">
+            <!-- Delete comment to show panels in a grid format on larger screens -->
+            <div id="template" class="hidden /*col-md-6 col-sm-12 col-lg-4*/ entry-container">
+                 <!-- template panel from https://getbootstrap.com/docs/3.3/components/#panels -->
+                <div class="panel panel-default">
+                 <div class="panel-heading">
+                        <h3 class="panel-title">Panel title</h3>
+                  </div>
+                  <div class="panel-body">
+                        Panel content
+                  </div>
+                  <div class="panel-footer">
+                        Panel Footer
+                  </div>
+                </div>
+            </div>  
+        </div>
     </div>
 
-    <!-- jQuery first, then Tether, then Bootstrap JS. -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" crossorigin="anonymous"></script>
-    <!--<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>-->
-    <!--<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>-->
-    <!-- Latest compiled and minified JavaScript -->
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
     
     <script type="text/javascript">
-        function createCrimeEntry(entry){
+        var data;
+        // creates a simple entry in list item format
+        function createEntry(entry){
             let formattedEntry = $("<li></li>");
             formattedEntry.append($("<div></div>").addClass("container-fluid"));
             formattedEntry.append($("<p></p>").html(`<strong>ID:</strong> ${entry.service_request_number}`).addClass("row"));
@@ -53,32 +62,57 @@
             return formattedEntry;
         }
         
-        function createCrimePanel(entry){
-            let crimePanel = $("#template").clone();
-            crimePanel.removeClass("hidden")
-                .attr("id",entry.service_request_number)
+        // creates a bootstrap panel with information filled out based on the entry
+        function createEntryPanel(entry){
+            let entryPanel = $("#template").clone()
+                .removeClass("hidden")
+                .attr("id",entry.service_request_number);
+            entryPanel
                 .find(".panel-title")
                     .text(`Entry ${entry.service_request_number}`)
                     .end()
                 .find(".panel-body")
                     .html(`<b>Address:</b> ${entry.street_address}<br><b>Status:</b> ${entry.status}`)
-                    .end();
+                    .end()
+                .find(".panel-footer") //display status
+                    .html(`<b>Opened:</b> ${new Date(entry.creation_date).toDateString()}<br><b>Completed:</b> ${entry.completion_date ? new Date(entry.completion_date).toDateString() : "N/A"}`);
                     
             if(entry.status.toLowerCase().indexOf("complete") > -1){
-                crimePanel.addClass("panel-success");
+                entryPanel.find(".panel").addClass("panel-success");
             }else{
-                crimePanel.addClass("panel-warning");
+                entryPanel.find(".panel").addClass("panel-warning");
             }
             
-            return crimePanel;
+            return entryPanel;
+        }
+        
+        function plotData(){
+            $(".entry-container[id!=template]").remove(); //remove old entries
+            
+            //sort data by service request number in ascending order
+            let sorted_data = data.sort((a,b) => {
+                let idA = a.service_request_number.split("-");
+                let idB = b.service_request_number.split("-");
+                
+                //compare by first part, then by second part
+                if(idA[0] !== idB[0]){
+                    return +idA[0] - +idB[0];
+                }else{
+                    return +idA[1] - +idB[1];
+                }
+            });
+            
+            $.each(sorted_data,(i,d) => {
+                $("#results").append(createEntryPanel(d));
+            });
+            console.log("Loaded",sorted_data.length,"entries");
         }
     
         $(document).ready(function(){
             // add ?$limit=100 to limit number of entries
             $.get("https://data.cityofchicago.org/resource/cdmx-wzbz.json?",function(response){
-                $.each(response,(i,d) => {
-                    $("#entries").append(createCrimePanel(d));
-                })
+                data = response;
+                plotData();
             });  
         })
     </script>
