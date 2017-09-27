@@ -1,0 +1,128 @@
+<!-- Source: https://developers.google.com/maps/documentation/javascript/examples/infowindow-simple -->
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Info windows</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 100%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      
+      #template {
+            display: none;
+        }
+    </style>
+  </head>
+  <body>
+    <div id="template" class="hidden entry-container">
+         <!-- template panel from https://getbootstrap.com/docs/3.3/components/#panels -->
+        <div class="panel panel-default">
+         <div class="panel-heading">
+                <h3 class="panel-title">Panel title</h3>
+          </div>
+          <div class="panel-body">
+                Panel content
+          </div>
+          <div class="panel-footer">
+                Panel Footer
+          </div>
+        </div>
+    </div>  
+    <div id="map"></div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script>
+
+      // This example displays a marker at the center of Australia.
+      // When the user clicks the marker, an info window opens.
+
+      function initMap() {
+        var uluru = {lat: 41.930754058940664, lng: -87.79706466410363};
+        
+
+        //start getting data
+        // add ?$limit=100 to limit number of entries
+        $.get("https://data.cityofchicago.org/resource/cdmx-wzbz.json?",function(response){
+            data = response;
+            
+            var map = new google.maps.Map(document.getElementById('map'), {
+              zoom: 11,
+              center: {lat:+response[0].latitude,lng:+response[0].longitude}
+            });
+            plotData(response,map);
+            
+            console.log("done");
+        });  
+      }
+      
+      // creates a simple entry in list item format
+        function createEntry(entry){
+            let formattedEntry = $("<div></div>").addClass("container-fluid");
+            formattedEntry.append($("<h2></h2>").html(`<strong>ID:</strong> ${entry.service_request_number}`).addClass("row"));
+            formattedEntry.append($("<p></p>").html(`<b>Address:</b> ${entry.street_address}`).addClass("row"));
+            formattedEntry.append($("<p></p>").html(`<b>Status:</b> ${entry.status}`).addClass("row"));
+            
+            return formattedEntry;
+        }
+      
+      // creates a bootstrap panel with information filled out based on the entry
+        function createEntryPanel(entry){
+            let entryPanel = $("#template").clone()
+                .removeClass("hidden")
+                .attr("id",entry.service_request_number);
+            entryPanel
+                .find(".panel-title")
+                    .text(`Entry ${entry.service_request_number}`)
+                    .end()
+                .find(".panel-body")
+                    .html(`<b>Address:</b> ${entry.street_address}<br><b>Status:</b> ${entry.status}`)
+                    .end()
+                .find(".panel-footer") //display status
+                    .html(`<b>Opened:</b> ${new Date(entry.creation_date).toDateString()}<br><b>Completed:</b> ${entry.completion_date ? new Date(entry.completion_date).toDateString() : "N/A"}`);
+                    
+            if(entry.status.toLowerCase().indexOf("complete") > -1){
+                entryPanel.find(".panel").addClass("panel-success");
+            }else{
+                entryPanel.find(".panel").addClass("panel-warning");
+            }
+            
+            return entryPanel;
+        }
+      
+      function plotData(dataToPlot,gMap){
+            $.each(dataToPlot,function(i,d){
+                var marker = new google.maps.Marker({
+                  position: {lat: +d.latitude, lng: +d.longitude},
+                  map: gMap,
+                  title: d.service_resquest_number
+                });
+                
+                var infowindow = new google.maps.InfoWindow({
+                  content: createEntry(d).html()
+                });
+                
+                marker.addListener('click', function() {
+                  infowindow.open(map, marker);
+                });
+            });
+
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtM4dgeealfD7wENvFp-OEtm0RL1HoJlM&callback=initMap">
+    </script>
+  </body>
+</html>
