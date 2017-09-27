@@ -70,8 +70,8 @@
       
       // creates a simple entry in list item format
         function createEntry(entry){
-            let formattedEntry = $("<div></div>").addClass("container-fluid");
-            formattedEntry.append($("<h2></h2>").html(`<strong>ID:</strong> ${entry.service_request_number}`).addClass("row"));
+            let formattedEntry = $("<div></div>").addClass("container");
+            formattedEntry.append($("<b></b>").html(entry.service_request_number).addClass("row"));
             formattedEntry.append($("<p></p>").html(`<b>Address:</b> ${entry.street_address}`).addClass("row"));
             formattedEntry.append($("<p></p>").html(`<b>Status:</b> ${entry.status}`).addClass("row"));
             
