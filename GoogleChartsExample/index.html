@@ -1,0 +1,93 @@
+<!-- Original Source: https://developers.google.com/chart/interactive/docs/quick_start -->
+
+<html>
+
+<head>
+    <!--Load the AJAX API-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript"> /*global google $ */
+        var loadedData; //for debugging 
+        
+        // Load the Visualization API and the corechart package.
+        google.charts.load('current', { 'packages': ['corechart'] });
+
+        // Set a callback to run when the Google Visualization API is loaded.
+        google.charts.setOnLoadCallback(drawChart);
+
+        function loadData() {
+            return new Promise(function(fulfill, reject) {
+                try{
+                    $.get("https://data.cityofchicago.org/resource/cdmx-wzbz.json?", function(response) {
+                        loadedData = response;
+
+                        fulfill(response);
+                    });   
+                }catch(err){
+                    reject(err);
+                }
+            })
+        }
+
+        // Callback that creates and populates a data table,
+        // instantiates the pie chart, passes in the data and
+        // draws it.
+        async function drawChart() {
+            
+            let results = await loadData();
+            
+            //compile data
+            let rows = {}; //key is type, value is amount
+            for(let d of results){
+                let dataEntry = d.what_type_of_surface_is_the_graffiti_on_;
+                // if(!dataEntry) console.log(d);
+                if(!rows[dataEntry]){ //create new entry if it doesn't exist yet
+                    rows[dataEntry] = 0;
+                }
+                rows[dataEntry]++;
+            }
+            
+            //convert rows object to google charts format
+            let formattedRows = [];
+            for(let r in rows){
+                let entry = [r, rows[r]];
+                formattedRows.push(entry);
+            }
+            // console.log(formattedRows);
+            
+            // Create the data table.
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Graffiti\'d Surfaces')
+            data.addColumn('number', 'Count of Graffiti\'d Surfaces');
+            data.addRows(formattedRows);
+
+            // Set chart options
+            // Loosely based on https://jsfiddle.net/api/post/library/pure/, which is found on https://developers.google.com/chart/interactive/docs/gallery/barchart
+            var options = {
+                title: 'Graffiti Reports by Surface Type',
+                width: 1080,
+                height: 720,
+                chartArea: { width: '50%' },
+                legend: { position: 'none' },
+                hAxis: {
+                    title: '# of Reports',
+                    minValue: 0,
+                },
+                vAxis: {
+                    title: 'Surface Type'
+                }
+            };
+
+            // Instantiate and draw our chart, passing in some options.
+            var chart = new google.visualization.BarChart(document.getElementById('chart_div'));
+            chart.draw(data, options);
+        }
+    </script>
+</head>
+
+<body>
+    <!--Div that will hold the pie chart-->
+    <div id="chart_div"></div>
+</body>
+
+</html>
