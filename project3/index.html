@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="favicon.ico">
+
+    <title>Project 3</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="css/jumbotron.css" rel="stylesheet">
+    
+    <style>
+      #contentContainer {
+        margin-bottom: 25px;
+      }
+      
+      #entriesList {
+        padding: 15px;
+      }
+      
+      .rounded {
+        border-radius: 5%;
+      }
+      
+      .list-entry {
+        margin-bottom: 15px;
+      }
+    </style>
+  </head>
+
+  <body>
+
+    <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+      <a class="navbar-brand" href="#">Navbar</a>
+      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <div class="collapse navbar-collapse" id="navbarsExampleDefault">
+        <ul class="navbar-nav mr-auto">
+          <li class="nav-item active">
+            <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#">Link</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link disabled" href="#">Disabled</a>
+          </li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="http://example.com" id="dropdown01" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Dropdown</a>
+            <div class="dropdown-menu" aria-labelledby="dropdown01">
+              <a class="dropdown-item" href="#">Action</a>
+              <a class="dropdown-item" href="#">Another action</a>
+              <a class="dropdown-item" href="#">Something else here</a>
+            </div>
+          </li>
+        </ul>
+        <form class="form-inline my-2 my-lg-0">
+          <input class="form-control mr-sm-2" type="text" placeholder="Search" aria-label="Search">
+          <button class="btn btn-outline-success my-2 my-sm-0" type="submit">Search</button>
+        </form>
+      </div>
+    </nav>
+
+    <!-- Main jumbotron for a primary marketing message or call to action -->
+    <div class="jumbotron">
+      <div class="container-fluid">
+        <h1 class="display-3 row">Chicago Food Inspection</h1>
+        <!-- Reference: https://getbootstrap.com/docs/4.0/components/forms/ -->
+        <form>
+          <div class="form-group">
+            <label for="inputDate" class="col-form-label">Inspection Date</label>
+            <input type="date" class="form-control" id="inputDate" placeholder="MM/DD/YYYY">
+          </div>
+          <div class="form-group">
+            <label for="inputFacilityType" class="col-form-label">Facility Type</label>
+            <select class="form-control" id="inputFacilityType">
+              <!-- Input options using JS-->
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="inputStatus" class="col-form-label">Inspection Result</label>
+            <select class="form-control" id="inputStatus">
+              <!-- Input options using JS-->
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label for="inputZip" class="col-form-label">Zip</label>
+            <input type="number" class="form-control" id="inputZip">
+            <div class="invalid-feedback">
+              Please provide a valid zip.
+            </div>
+          </div>
+          
+          <button type="submit" class="btn btn-primary btn-lg" id="submitButton">Search</button>
+        </form>
+      </div>
+    </div>
+    
+    <div class="container-fluid" id="contentContainer">
+      <!-- Based off of https://getbootstrap.com/docs/4.0/components/list-group/ -->
+      <div class="row">
+        <div class="col-sm-4 col-md-3 col-lg-3">
+          <div class="list-group" id="list-tab" role="tablist">
+            <a class="text-center list-group-item list-group-item-action active" id="list-results-list" data-toggle="list" href="#results-tab" role="tab" aria-controls="list">Entries List</a>
+            <a class="text-center list-group-item list-group-item-action" id="list-results-map" data-toggle="list" href="#map-tab" role="tab" aria-controls="map">Map</a>
+          </div>
+        </div>
+        <div class="col">
+          <div class="tab-content" id="nav-tabContent">
+            <div class="tab-pane fade show active" id="results-tab" role="tabpanel" aria-labelledby="list-results-list">
+              <div class="bg-light rounded" id="entriesList">
+                <!-- Referenced https://getbootstrap.com/docs/4.0/components/card/ -->
+                <div class="card list-entry border-secondary" id="template">
+                  <h4 class="card-header">facility_type: dba_name</h4>
+                  <div class="card-body">
+                    
+                    <h6 class="card-subtitle mb-2 text-muted">ID: <spen id="inspection_id">inspection_id</spen> | <span id="inspection_date">inspection_date</span></h6>
+                    <p class="card-text"><b>Type: </b><spen id="inspection_type">inspection_type</spen></p>
+                    <p class="card-text"><b>Result: </b><spen id="inspection_result">inspection_result</spen></p>
+                    <a href="#" class="card-link">address, city, state</a>
+                  </div>
+                </div>
+                
+              </div>
+            </div>
+            <div class="tab-pane fade" id="map-tab" role="tabpanel" aria-labelledby="list-results-map">
+              Map content
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container-fluid bg-light">
+      <!-- Example row of columns -->
+      <div class="row">
+        <div class="col-md-4">
+          <h2>Heading</h2>
+          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+          <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+        </div>
+        <div class="col-md-4">
+          <h2>Heading</h2>
+          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
+          <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+        </div>
+        <div class="col-md-4">
+          <h2>Heading</h2>
+          <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
+          <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+        </div>
+      </div>
+
+      <hr>
+
+      <footer>
+        <p>&copy; Company 2017</p>
+      </footer>
+    </div> <!-- /container -->
+
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!--<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>-->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+    <script src="js/ie10-viewport-bug-workaround.js"></script>
+    
+    <script type="text/javascript"> /* global $ */
+      var loadedData; //for debugging
+      // data source: https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5
+      $(document).ready(function(){
+        loadData().then((data) => {
+          console.log("TODO: better form validation");
+          
+          initializeForm(data);
+          console.log("ready");
+        })
+      });
+      
+      function loadData(){
+        return new Promise(function(fulfill,reject){
+          $.get("https://data.cityofchicago.org/resource/cwig-ma7x.json",function(response){
+            loadedData = response;
+            fulfill(response);
+          });
+        });
+      }
+      
+      //given an array and key, return array of unique values of key
+      function getUniqueKeyValues(array,key, keepUndefined){
+        let results = [];
+        for(let d of array){
+          if(results.indexOf(d[key]) === -1){
+            if(d[key] !== undefined || keepUndefined)
+              results.push(d[key]);
+          }
+        }
+        return results;
+      }
+      
+      function isValidZip(zip){
+        // source: https://stackoverflow.com/questions/160550/zip-code-us-postal-code-validation
+        return (/(^\d{5}$)|(^\d{5}-\d{4}$)/.test(zip));
+      }
+      
+      function initializeForm(data){
+        const facility_types = getUniqueKeyValues(data,"facility_type");
+        const inspection_results = getUniqueKeyValues(data,"results");
+        let template_option = $("<option></option>");
+        
+        //add facility types and inspection results to form
+        let facility_field = $("#inputFacilityType");
+        let status_field = $("#inputStatus");
+        
+        template_option.clone().text("No Filter Selected").appendTo(facility_field);
+        for(const f of facility_types){
+          template_option.clone().text(f).appendTo(facility_field);
+        }
+        
+        template_option.clone().text("No Filter Selected").appendTo(status_field);
+        for(const s of inspection_results){
+          template_option.clone().text(s).appendTo(status_field);
+        }
+        
+        
+        //add handler to button
+        $("#submitButton").on('click',function(e){
+          e.preventDefault();
+          
+          let form_input = {
+            inspection_date: $("#inputDate").val().length === 0 ? "" : new Date($("#inputDate").val()).toISOString(),
+            facilty_type: $("#inputFacilityType").val() === "No Filter Selected" ? "" : $("#inputFacilityType").val(),
+            results: $("#inputStatus").val() === "No Filter Selected" ? "" : $("#inputStatus").val(), //inspection results
+            zip: $("#inputZip").val(),
+          };
+          
+          //delete any empty field
+          for(let f of Object.keys(form_input)){
+            if(form_input[f].length === 0){
+              delete form_input[f];
+            }
+          }
+          
+          //validate zip code
+          if(form_input.zip && !isValidZip(form_input.zip)){
+            $("#inputZip").addClass("is-invalid");
+            return;
+          }else{
+            $("#inputZip").removeClass("is-invalid");
+          }
+          
+          console.log($.param(form_input));
+          
+        });
+      }
+    </script>
+  </body>
+</html>
