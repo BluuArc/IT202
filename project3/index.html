@@ -40,8 +40,11 @@
       
       #map {
         height: 1000px;
-        width: 100%;
         background-color: gray;
+      }
+      
+      .hidden {
+        display: none;
       }
     </style>
   </head>
@@ -122,14 +125,19 @@
       <div class="row">
         <div class="col-sm-4 col-md-3 col-lg-3">
           <div class="list-group" id="list-tab" role="tablist">
-            <a class="text-center list-group-item list-group-item-action active" id="list-results-list" data-toggle="list" href="#results-tab" role="tab" aria-controls="list">Entries List</a>
-            <a class="text-center list-group-item list-group-item-action" id="list-results-map" data-toggle="list" href="#map-tab" role="tab" aria-controls="map">Map</a>
+            <a class="text-center list-group-item list-group-item-action active" id="list-results-map" data-toggle="list" href="#map-tab" role="tab" aria-controls="map">Map</a>
+            <a class="text-center list-group-item list-group-item-action" id="list-results-list" data-toggle="list" href="#results-tab" role="tab" aria-controls="list">Entries List</a>
             <p class="text-center list-group-item list-group-item-action disabled" id="results-msg">No data loaded.</p>
           </div>
         </div>
         <div class="col">
           <div class="tab-content" id="nav-tabContent">
-            <div class="tab-pane fade show active" id="results-tab" role="tabpanel" aria-labelledby="list-results-list">
+            <div class="tab-pane fade show active" id="map-tab" role="tabpanel" aria-labelledby="list-results-map">
+              <div id="mapContainer" class="hidden">
+                <div id="map"></div>  
+              </div>
+            </div>
+            <div class="tab-pane fade show" id="results-tab" role="tabpanel" aria-labelledby="list-results-list">
               <div class="bg-light rounded border-secondary" id="entriesList">
                 <!-- Referenced https://getbootstrap.com/docs/4.0/components/card/ -->
                 <div class="card list-entry border-secondary" id="template">
@@ -144,12 +152,6 @@
                 </div>
                 
               </div>
-            </div>
-            <div class="tab-pane fade" id="map-tab" role="tabpanel" aria-labelledby="list-results-map">
-              <div id="mapContainer">
-                <div id="map"></div>  
-              </div>
-              
             </div>
           </div>
         </div>
@@ -193,16 +195,18 @@
     <script src="js/bootstrap.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="js/ie10-viewport-bug-workaround.js"></script>
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtM4dgeealfD7wENvFp-OEtm0RL1HoJlM"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4cvNVl4Z-P_JzuNHkQ6ajnBuRQJqdmes"></script>
     
     <script type="text/javascript"> /* global $ */
       var loadedData; //for debugging
       // data source: https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5
       $(document).ready(function(){
+        // initMap();
         loadData().then((data) => {
           console.log("TODO: better form validation");
           
           initializeForm(data);
+          $("#mapContainer").addClass("hidden");
           console.log("ready");
         })
       });
@@ -259,6 +263,7 @@
       //when activated, get filters and populate views
       function submitFilters(button_event){
         button_event.preventDefault();
+        $("#mapContainer").addClass("hidden");
           
         let form_input = {
           inspection_date: $("#inputDate").val().length === 0 ? "" : new Date($("#inputDate").val()).toISOString(),
@@ -292,6 +297,7 @@
         console.log(filtered_input);
         return loadData(filtered_input)
           .then((data) => {
+            $("#mapContainer").removeClass("hidden");
             initMap(data);
             addListEntries(data);
             $("#results-msg").text(`Loaded ${data.length} entries`);
@@ -331,14 +337,16 @@
       
       //from app 2.1
       function initMap(data){
-        let uluru = {lat:+data[0].latitude,lng:+data[0].longitude};
+        let uluru = data ? {lat:+data[0].latitude,lng:+data[0].longitude} : {lat: 41.930754058940664, lng: -87.79706466410363};
         
         let map = new google.maps.Map(document.getElementById('map'), {
           zoom: 11,
           center: uluru
         });
         
-        plotData(data,map);
+        if(data){
+          plotData(data,map);  
+        }
       }
       
       function plotData(dataToPlot,gMap){
