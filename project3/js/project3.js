@@ -5,9 +5,8 @@ var loadedData; //for debugging
 $(document).ready(function() {
   // initMap();
   loadData().then((data) => {
-    console.log("TODO: better form validation");
-
-    initializeForm(data);
+    return initializeForm(data);
+  }).then(() => {
     $("#submitButton").attr("disabled",null);
     console.log("ready");
   })
@@ -18,6 +17,17 @@ function loadData(filters) {
     $.get("https://data.cityofchicago.org/resource/cwig-ma7x.json?" + (filters && filters.length > 0 ? `${filters}` : ""), function(response) {
       loadedData = response;
       fulfill(response);
+    });
+  });
+}
+
+function getFacilityTypes() {
+  return new Promise(function(fulfill,reject){
+    $.get("https://data.cityofchicago.org/resource/cwig-ma7x.json?$select=facility_type,count(*)&$group=facility_type&$order=count(*)%20desc",function(response){
+      let facility_types = response.map((d) => { return d.facility_type || ""; }) //convert result to facility types
+        .filter((d) => { return d.length > 0; }) //remove any empty entries
+        .sort() //sort alphabetically
+      fulfill(facility_types);
     });
   });
 }
@@ -40,38 +50,42 @@ function isValidZip(zip) {
 }
 
 function initializeForm(data) {
-  const facility_types = getUniqueKeyValues(data, "facility_type").sort();
-  const inspection_results = getUniqueKeyValues(data, "results");
-  let template_option = $("<option></option>");
-
-  //add facility types and inspection results to form
-  let facility_field = $("#inputFacilityType");
-  let status_field = $("#inputStatus");
-
-  template_option.clone().text("No Filter Selected").appendTo(facility_field);
-  for (const f of facility_types) {
-    template_option.clone().text(f).appendTo(facility_field);
-  }
-
-  template_option.clone().text("No Filter Selected").appendTo(status_field);
-  for (const s of inspection_results) {
-    template_option.clone().text(s).appendTo(status_field);
-  }
-
-  //add handler to button
-  $("#submitButton").on('click', submitFilters);
+  return getFacilityTypes().then((facility_types) => {
+    const inspection_results = getUniqueKeyValues(data, "results");
+    let template_option = $("<option></option>");
+  
+    //add facility types and inspection results to form
+    let facility_field = $("#inputFacilityType");
+    let status_field = $("#inputStatus");
+  
+    template_option.clone().text("No Filter Selected").appendTo(facility_field);
+    for (const f of facility_types) {
+      template_option.clone().text(f).appendTo(facility_field);
+    }
+  
+    template_option.clone().text("No Filter Selected").appendTo(status_field);
+    for (const s of inspection_results) {
+      template_option.clone().text(s).appendTo(status_field);
+    }
+  
+    //add handler to button
+    $("#submitButton").on('click', submitFilters);
+  });
 }
 
 //when activated, get filters and populate views
 function submitFilters(button_event) {
   button_event.preventDefault();
   $("#mapContainer").addClass("hidden");
+  $("#results-msg").text("Validating input...");
+  $(".list-entry[id!=template]").remove();
 
   let form_input = {
     inspection_date: $("#inputDate").val().length === 0 ? "" : new Date($("#inputDate").val()).toISOString(),
     facility_type: $("#inputFacilityType").val() === "No Filter Selected" ? "" : $("#inputFacilityType").val(),
     results: $("#inputStatus").val() === "No Filter Selected" ? "" : $("#inputStatus").val(), //inspection results
     zip: $("#inputZip").val(),
+    $limit: $("#inputLimit").val()
   };
 
   //delete any empty field
@@ -86,10 +100,20 @@ function submitFilters(button_event) {
   //validate zip code
   if (form_input.zip && !isValidZip(form_input.zip)) {
     $("#inputZip").addClass("is-invalid");
+    $("#results-msg").text("Validation error encountered.");
     return;
   }
   else {
     $("#inputZip").removeClass("is-invalid");
+  }
+  
+  //validate limit
+  if(form_input.$limit && !(+form_input.$limit >= 0 && +form_input.$limit <= 5000)){
+    $("#inputLimit").addClass("is-invalid");
+    $("#results-msg").text("Validation error encountered.");
+    return;
+  }else{
+    $("#inputLimit").removeClass("is-invalid");
   }
 
   let filtered_input = $.param(form_input);
@@ -97,7 +121,7 @@ function submitFilters(button_event) {
     filtered_input = filtered_input.slice(1); //strip leading ampersand
   }
 
-  $(".list-entry[id!=template]").remove();
+  
   $("#results-msg").text("Loading data...");
   return loadData(filtered_input)
     .then((data) => {
@@ -205,6 +229,7 @@ function initMap(data) {
 }
 
 function plotData(dataToPlot, gMap) {
+  let markers = [];
   $.each(dataToPlot, function(i, d) {
     var marker = new google.maps.Marker({
       position: { lat: +d.latitude, lng: +d.longitude },
@@ -226,8 +251,18 @@ function plotData(dataToPlot, gMap) {
     marker.addListener('click', function() {
       infowindow.open(gMap, marker);
     });
+    
+    markers.push(marker);
   });
 
-  console.log("donw plotting data");
+  // Add a marker clusterer to manage the markers.
+  // from https://developers.google.com/maps/documentation/javascript/marker-clustering
+  var markerCluster = new MarkerClusterer(gMap, markers,
+      {
+        imagePath: 'https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/m',
+        maxZoom: 20
+      });
+  
+  console.log("done plotting data");
 
 }

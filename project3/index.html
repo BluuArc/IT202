@@ -119,6 +119,14 @@
             </div>
           </div>
           
+          <div class="form-group">
+            <label for="inputLimit" class="col-form-label">Max Number of Results to Show</label>
+            <input type="number" class="form-control" id="inputLimit" min="0" max="5000">
+            <div class="invalid-feedback">
+              Please provide a number between 0 and 5,000.
+            </div>
+          </div>
+          
           <button type="submit" class="btn btn-primary btn-lg" id="submitButton" disabled>Search</button>
         </form>
       </div>
@@ -161,8 +169,8 @@
                       <div class="card-body">
                         <h6 class="card-subtitle mb-2 text-muted">#<span id="inspection_id">inspection_id</span> | <span id="inspection_date">inspection_date</span></h6>
                         <p class="card-text"><b>AKA: </b><span id="aka_name">aka_name</span></p>
-                        <p class="card-text"><b>Type: </b><span id="inspection_type">inspection_type</span></p>
-                        <p class="card-text"><b>Result: </b><span id="results">results</span></p>
+                        <p class="card-text"><b>Inspection Type: </b><span id="inspection_type">inspection_type</span></p>
+                        <p class="card-text"><b>Inspection Result: </b><span id="results">results</span></p>
                         <a href="#" class="card-link" id="address_link">address, city, state</a>
                       </div>  
                     </div>
@@ -217,6 +225,7 @@
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="js/ie10-viewport-bug-workaround.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4cvNVl4Z-P_JzuNHkQ6ajnBuRQJqdmes"></script>
+    <script src="https://developers.google.com/maps/documentation/javascript/examples/markerclusterer/markerclusterer.js"></script>
     
     <script src="js/project3.js"></script>
   </body>
