@@ -1,4 +1,4 @@
-/* global $  */
+/* global $ google */
 
 var loadedData; //for debugging
 // data source: https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5
@@ -130,9 +130,32 @@ function addListEntry(entry) {
   
   //maps url referenced from https://developers.google.com/maps/documentation/urls/guide
   let address = `${entry.address.trim()}, ${entry.city}, ${entry.state}, ${entry.zip}`;
+  let address_fields = ["address", "city", "state", "zip"];
   entryCard.find("#address_link")
     .text(address)
     .attr("href", `https://www.google.com/maps/search/?api=1&query=${address.replace(/ /g, "+")}`);
+   
+  //collapse code referenced from http://getbootstrap.com/docs/4.0/components/collapse/ 
+  let extra_info = "";
+  for(let field in entry){
+    if(autofill_fields.indexOf(field) === -1 && address_fields.indexOf(field) === -1 && 
+        field !== "inspection_date" && field !== "location"){
+      if(field !== "violations"){
+        extra_info += `<p><b>${field}:</b> ${entry[field]}`  
+      }else{
+        let violations = entry.violations.split(" | ");
+        extra_info += `<p><b>${field}:</b><ul>`;
+        for(let v of violations){
+          extra_info += `<li>${v}</li>`;
+        }
+        extra_info += "</ul>";
+      }
+      
+    }
+  }
+  entryCard.find(".card-body").eq(0).append(`<div class="card-body"><a class="btn btn-primary" data-toggle="collapse" href="#extra-info-${entry.inspection_id}">More Info</a></div>`);
+  entryCard.find("#extra-info").append(`<div class="card-body collapse" id="extra-info-${entry.inspection_id}">${extra_info}</div>`);
+  
 
   let result = entry.results.toLowerCase();
   entryCard.removeClass("border-secondary");
@@ -187,8 +210,15 @@ function plotData(dataToPlot, gMap) {
       title: d.dba_name
     });
 
+    let address = `${d.address.trim()}, ${d.city}, ${d.state}, ${d.zip}`;
     var infowindow = new google.maps.InfoWindow({
-      content: `<h3>${d.dba_name}</h3>`
+      content:  `<div class="container">
+                  <h3>${d.dba_name}</h3>
+                  <p class="text-muted">AKA: ${d.aka_name}</p>
+                  <p><b>Address:</b> ${address}</p>
+                  <p><b>Inspection Date:</b> ${new Date(d.inspection_date).toDateString()}
+                  <p><b>Result:</b> ${d.results}</p>
+                </div>`
     });
 
     marker.addListener('click', function() {
