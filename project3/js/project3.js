@@ -137,6 +137,7 @@ function addListEntry(entry) {
    
   //collapse code referenced from http://getbootstrap.com/docs/4.0/components/collapse/ 
   let extra_info = "";
+  //add info for other fields not already specified
   for(let field in entry){
     if(autofill_fields.indexOf(field) === -1 && address_fields.indexOf(field) === -1 && 
         field !== "inspection_date" && field !== "location"){
@@ -157,6 +158,7 @@ function addListEntry(entry) {
   entryCard.find("#extra-info").append(`<div class="card-body collapse" id="extra-info-${entry.inspection_id}">${extra_info}</div>`);
   
 
+  //set border color based on result
   let result = entry.results.toLowerCase();
   entryCard.removeClass("border-secondary");
   if (result.indexOf("pass") > -1) {
