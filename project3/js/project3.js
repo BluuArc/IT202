@@ -8,7 +8,7 @@ $(document).ready(function() {
     console.log("TODO: better form validation");
 
     initializeForm(data);
-    $("#contentContainer").addClass("hidden");
+    $("#submitButton").attr("disabled",null);
     console.log("ready");
   })
 });

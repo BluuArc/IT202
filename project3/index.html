@@ -56,7 +56,7 @@
   <body>
 
     <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
-      <a class="navbar-brand" href="#">Navbar</a>
+      <a class="navbar-brand" href="/">Navbar</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExampleDefault" aria-controls="navbarsExampleDefault" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -119,12 +119,12 @@
             </div>
           </div>
           
-          <button type="submit" class="btn btn-primary btn-lg" id="submitButton">Search</button>
+          <button type="submit" class="btn btn-primary btn-lg" id="submitButton" disabled>Search</button>
         </form>
       </div>
     </div>
     
-    <div class="container-fluid" id="contentContainer">
+    <div class="container-fluid hidden" id="contentContainer">
       <!-- card tabs based off of https://getbootstrap.com/docs/4.0/components/card/ -->
       <!-- tab interactivity based off of https://getbootstrap.com/docs/4.0/components/list-group/ -->
       <div class="card">
@@ -141,7 +141,7 @@
             </ul>
           </div>
           <div class="col text-right">
-            <h5><span class="badge badge-primary" id="results-msg">No data loaded</span></h5>
+            <h5><span class="badge badge-secondary" id="results-msg">No data loaded</span></h5>
           </div>
         </div>
         <div class="card-body">
@@ -178,27 +178,27 @@
     <div class="container-fluid bg-light">
       <!-- Example row of columns -->
       <div class="row">
-        <div class="col-md-4">
-          <h2>Heading</h2>
-          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-          <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+        <div class="col">
+          <h2>Data Source</h2>
+          <p>The data shown entries here are queried from the Chicago Data Portal using the Socrata Open Data API (SODA).</p>
+          <p><a class="btn btn-secondary" href="https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5" role="button" target="_blank">View details &raquo;</a></p>
         </div>
-        <div class="col-md-4">
-          <h2>Heading</h2>
-          <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p>
-          <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+        <div class="col">
+          <h2>Project Info</h2>
+          <p>This page was created as a submission for Project 3 in IT202, Fall 2017.</p>
+          <p><a class="btn btn-secondary" href="https://github.com/IT202/project3" role="button" target="_blank">View details &raquo;</a></p>
         </div>
-        <div class="col-md-4">
-          <h2>Heading</h2>
-          <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-          <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p>
+        <div class="col">
+          <h2>Repository Link</h2>
+          <p>The repository can be accessed via the button below.</p>
+          <p><a class="btn btn-secondary" href="https://github.com/BluuArc/IT202" role="button" target="_blank">View details &raquo;</a></p>
         </div>
       </div>
 
       <hr>
 
       <footer>
-        <p>&copy; Company 2017</p>
+        <p>&copy; Joshua Castor 2017</p>
       </footer>
     </div> <!-- /container -->
 
