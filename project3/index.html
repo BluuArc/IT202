@@ -50,6 +50,11 @@
       .hidden {
         display: none;
       }
+      
+      #resultSelectionRow {
+        margin-left: 0;
+        margin-right: 0;
+      }
     </style>
   </head>
 
@@ -137,7 +142,7 @@
       <!-- tab interactivity based off of https://getbootstrap.com/docs/4.0/components/list-group/ -->
       <div class="card">
         <p class="card-title display-4">Results</p>
-        <div class="card-header row">
+        <div class="card-header row" id="resultSelectionRow">
           <div class="col">
             <ul class="nav nav-pills card-header-pills" role="tablist">
               <li class="nav-item">
