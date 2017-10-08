@@ -118,7 +118,7 @@ function submitFilters(button_event) {
 
 function addListEntry(entry) {
   let entryCard = $("#template").clone();
-  const autofill_fields = ["facility_type", "dba_name", "inspection_id", "inspection_date", "inspection_type", "results"];
+  const autofill_fields = ["facility_type", "dba_name", "aka_name" ,"inspection_id", "inspection_date", "inspection_type", "results"];
 
   for (const f of autofill_fields) {
     entryCard.find(`#${f}`).text(entry[f] || "Unknown");
