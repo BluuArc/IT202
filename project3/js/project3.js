@@ -123,6 +123,12 @@ function addListEntry(entry) {
   for (const f of autofill_fields) {
     entryCard.find(`#${f}`).text(entry[f] || "Unknown");
   }
+  
+  //maps url referenced from https://developers.google.com/maps/documentation/urls/guide
+  let address = `${entry.address.trim()}, ${entry.city}, ${entry.state}`;
+  entryCard.find("#address_link")
+    .text(address)
+    .attr("href", `https://www.google.com/maps/search/?api=1&query=${address.replace(/ /g, "+")}`);
 
   let result = entry.results.toLowerCase();
   entryCard.removeClass("border-secondary");
@@ -146,7 +152,12 @@ function addListEntry(entry) {
 
 function addListEntries(data) {
   for (let d of data) {
-    addListEntry(d);
+    try{
+      addListEntry(d);
+    }catch(err){
+      console.error(err);
+      continue;
+    }
   }
 }
 
