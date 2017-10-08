@@ -1,3 +1,5 @@
+/* global $  */
+
 var loadedData; //for debugging
 // data source: https://data.cityofchicago.org/Health-Human-Services/Food-Inspections/4ijn-s7e5
 $(document).ready(function() {
@@ -6,7 +8,7 @@ $(document).ready(function() {
     console.log("TODO: better form validation");
 
     initializeForm(data);
-    $("#mapContainer").addClass("hidden");
+    $("#contentContainer").addClass("hidden");
     console.log("ready");
   })
 });
@@ -98,9 +100,18 @@ function submitFilters(button_event) {
   console.log(filtered_input);
   return loadData(filtered_input)
     .then((data) => {
-      $("#mapContainer").removeClass("hidden");
-      initMap(data);
+      let contentContainer = $("#contentContainer");
+      let mapContainer = $("#mapContainer");
+      if(contentContainer.hasClass("hidden")){
+        $("#contentContainer").removeClass("hidden");  
+      }
+      $("#map-tab").click(); //always start on map tab so map loads properly
+      mapContainer.removeClass("hidden");
+      
       addListEntries(data);
+      
+      setTimeout(() => {initMap(data)}, 100); //add delay to fix map loading bug
+      
       $("#results-msg").text(`Loaded ${data.length} entries`);
     });
 }
