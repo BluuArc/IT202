@@ -78,6 +78,7 @@ function submitFilters(button_event) {
   button_event.preventDefault();
   $("#mapContainer").addClass("hidden");
   $("#results-msg").text("Validating input...");
+  $("#submitButton").attr("disabled",true);
   $(".list-entry[id!=template]").remove();
 
   let form_input = {
@@ -101,6 +102,7 @@ function submitFilters(button_event) {
   if (form_input.zip && !isValidZip(form_input.zip)) {
     $("#inputZip").addClass("is-invalid");
     $("#results-msg").text("Validation error encountered.");
+    $("#submitButton").attr("disabled",null);
     return;
   }
   else {
@@ -111,6 +113,7 @@ function submitFilters(button_event) {
   if(form_input.$limit && !(+form_input.$limit >= 0 && +form_input.$limit <= 5000)){
     $("#inputLimit").addClass("is-invalid");
     $("#results-msg").text("Validation error encountered.");
+    $("#submitButton").attr("disabled",null);
     return;
   }else{
     $("#inputLimit").removeClass("is-invalid");
@@ -136,6 +139,8 @@ function submitFilters(button_event) {
       addListEntries(data);
       
       setTimeout(() => {initMap(data)}, 250); //add delay to fix map loading bug
+      
+      $("#submitButton").attr("disabled",null);
       
       $("#results-msg").text(`Loaded ${data.length} ${data.length === 1 ? "entry" : "entries"}`);
     });
