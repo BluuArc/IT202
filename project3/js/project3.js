@@ -40,7 +40,7 @@ function isValidZip(zip) {
 }
 
 function initializeForm(data) {
-  const facility_types = getUniqueKeyValues(data, "facility_type");
+  const facility_types = getUniqueKeyValues(data, "facility_type").sort();
   const inspection_results = getUniqueKeyValues(data, "results");
   let template_option = $("<option></option>");
 
@@ -78,6 +78,8 @@ function submitFilters(button_event) {
   for (let f of Object.keys(form_input)) {
     if (form_input[f].length === 0) {
       delete form_input[f];
+    }else if(f === "inspection_date"){
+      form_input[f] = form_input[f].slice(0,form_input[f].length-2); //remove trailing Z
     }
   }
 
@@ -97,7 +99,6 @@ function submitFilters(button_event) {
 
   $(".list-entry[id!=template]").remove();
   $("#results-msg").text("Loading data...");
-  console.log(filtered_input);
   return loadData(filtered_input)
     .then((data) => {
       let contentContainer = $("#contentContainer");
@@ -110,22 +111,25 @@ function submitFilters(button_event) {
       
       addListEntries(data);
       
-      setTimeout(() => {initMap(data)}, 100); //add delay to fix map loading bug
+      setTimeout(() => {initMap(data)}, 250); //add delay to fix map loading bug
       
-      $("#results-msg").text(`Loaded ${data.length} entries`);
+      $("#results-msg").text(`Loaded ${data.length} ${data.length === 1 ? "entry" : "entries"}`);
     });
 }
 
 function addListEntry(entry) {
   let entryCard = $("#template").clone();
-  const autofill_fields = ["facility_type", "dba_name", "aka_name" ,"inspection_id", "inspection_date", "inspection_type", "results"];
+  const autofill_fields = ["facility_type", "dba_name", "aka_name" ,"inspection_id", "inspection_type", "results"];
 
   for (const f of autofill_fields) {
     entryCard.find(`#${f}`).text(entry[f] || "Unknown");
   }
   
+  entryCard.find("#inspection_date")
+    .text(new Date(entry.inspection_date).toDateString());
+  
   //maps url referenced from https://developers.google.com/maps/documentation/urls/guide
-  let address = `${entry.address.trim()}, ${entry.city}, ${entry.state}`;
+  let address = `${entry.address.trim()}, ${entry.city}, ${entry.state}, ${entry.zip}`;
   entryCard.find("#address_link")
     .text(address)
     .attr("href", `https://www.google.com/maps/search/?api=1&query=${address.replace(/ /g, "+")}`);
@@ -163,7 +167,7 @@ function addListEntries(data) {
 
 //from app 2.1
 function initMap(data) {
-  let uluru = data ? { lat: +data[0].latitude, lng: +data[0].longitude } : { lat: 41.930754058940664, lng: -87.79706466410363 };
+  let uluru = (data && data.length > 0) ? { lat: +data[0].latitude, lng: +data[0].longitude } : { lat: 41.930754058940664, lng: -87.79706466410363 };
 
   let map = new google.maps.Map(document.getElementById('map'), {
     zoom: 11,
