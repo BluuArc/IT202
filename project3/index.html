@@ -43,6 +43,10 @@
         background-color: gray;
       }
       
+      .card .card-title.display-4 {
+        padding-left: 10px;
+      }
+      
       .hidden {
         display: none;
       }
@@ -121,23 +125,34 @@
     </div>
     
     <div class="container-fluid" id="contentContainer">
-      <!-- Based off of https://getbootstrap.com/docs/4.0/components/list-group/ -->
-      <div class="row">
-        <div class="col-sm-4 col-md-3 col-lg-3">
-          <div class="list-group" id="list-tab" role="tablist">
-            <a class="text-center list-group-item list-group-item-action active" id="list-results-map" data-toggle="list" href="#map-tab" role="tab" aria-controls="map">Map</a>
-            <a class="text-center list-group-item list-group-item-action" id="list-results-list" data-toggle="list" href="#results-tab" role="tab" aria-controls="list">Entries List</a>
-            <p class="text-center list-group-item list-group-item-action disabled" id="results-msg">No data loaded.</p>
+      <!-- card tabs based off of https://getbootstrap.com/docs/4.0/components/card/ -->
+      <!-- tab interactivity based off of https://getbootstrap.com/docs/4.0/components/list-group/ -->
+      <div class="card">
+        <p class="card-title display-4">Results</p>
+        <div class="card-header row">
+          <div class="col">
+            <ul class="nav nav-pills card-header-pills" role="tablist">
+              <li class="nav-item">
+                <a class="nav-link active" id="map-tab" href="#map-tab-content" data-toggle="list" aria-controls="map">Map</a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="entries-list-tab" href="#entries-list-tab-content" data-toggle="list" aria-controls="list">Entries List</a>
+              </li>
+            </ul>
           </div>
+          <div class="col text-right">
+            <span class="badge badge-primary" id="results-msg">No data loaded</span>  
+          </div>
+          
         </div>
-        <div class="col">
-          <div class="tab-content" id="nav-tabContent">
-            <div class="tab-pane fade show active" id="map-tab" role="tabpanel" aria-labelledby="list-results-map">
+        <div class="card-body">
+          <div class="tab-content" id="card-nav-tabContent">
+            <div class="tab-pane fade show active" id="map-tab-content" role="tabpanel" aria-labelledby="map-tab">
               <div id="mapContainer" class="hidden">
                 <div id="map"></div>  
               </div>
             </div>
-            <div class="tab-pane fade show" id="results-tab" role="tabpanel" aria-labelledby="list-results-list">
+            <div class="tab-pane fade" id="entries-list-tab-content" role="tabpanel" aria-labelledby="entries-list-tab">
               <div class="bg-light rounded border-secondary" id="entriesList">
                 <!-- Referenced https://getbootstrap.com/docs/4.0/components/card/ -->
                 <div class="card list-entry border-secondary" id="template">
@@ -153,6 +168,8 @@
                 
               </div>
             </div>
+            <div class="tab-pane fade" id="card-list-messages" role="tabpanel" aria-labelledby="card-list-messages-list">messages</div>
+            <div class="tab-pane fade" id="card-list-settings" role="tabpanel" aria-labelledby="card-list-settings-list">settings</div>
           </div>
         </div>
       </div>
