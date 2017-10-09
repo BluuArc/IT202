@@ -51,14 +51,14 @@
                     for(let d of cdpData){
                         formattedData.push([d.department, +d.SUM_annual_salary]);
                     }
-                    data.addRows(formattedData);
+                    data.addRows(formattedData.sort((a,b) => { return a[1] - b[1]; }));
     
                     // Set chart options
                     var options = {
                         title: 'Salaries by Department',
                         width: 400,
                         height: 300,
-                        // sliceVisibilityThreshold: .2
+                        sliceVisibilityThreshold: .1
                     };
     
                     // Instantiate and draw our chart, passing in some options.
