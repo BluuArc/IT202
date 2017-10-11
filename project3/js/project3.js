@@ -116,6 +116,8 @@ function submitFilters(button_event) {
     $("#submitButton").attr("disabled",null);
     return;
   }else{
+    if(form_input.$limit) 
+      form_input.$limit = parseInt(form_input.$limit); //remove any decimals
     $("#inputLimit").removeClass("is-invalid");
   }
 
