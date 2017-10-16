@@ -61,7 +61,7 @@
             };
             
             
-            function Circle(radius,x,y,color, context){
+            function Circle(radius,x,y,color,context){
                 this.radius = radius;
                 this.x = x;
                 this.y = y;
@@ -81,6 +81,20 @@
                 this.move = function(dX,dY){ //move randomly or by a specified amount
                     this.x += (!isNaN(dX) ? +dX : parseInt(Math.random() * 10));
                     this.y += (!isNaN(dY) ? +dY : parseInt(Math.random() * 10));
+                    
+                    //handle edge conditions
+                    if(this.x - radius < 0){
+                        this.x = gameArea.data.width - radius;
+                    }else if(this.x + radius > gameArea.data.width){
+                        this.x = radius;
+                    }
+                    
+                    if(this.y - radius < 0){
+                        this.y = gameArea.data.height - radius;
+                    }else if(this.y + radius > gameArea.data.height){
+                        this.y = radius;
+                    }
+                    
                     this.update();
                 }
             }
@@ -123,15 +137,13 @@
                 //initialize gameArea
                 sizeCanvas();
                 
-                
                 //create on click
                 $("#myCanvas") .on('click',function(e){
                     if(!gameArea.circle){ //create a circle
                         drawPlayer(e.pageX,e.pageY);
-                        requestAnimationFrame(draw);
+                        requestAnimationFrame(draw); //start draw loop
                     }
                 });
-                
                 
                 //add keyboard handlers
                 $("body").on("keydown", function(e){
