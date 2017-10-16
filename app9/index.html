@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>App 9</title>
+    </head>
+    <body>
+        
+        <canvas id="myCanvas" width="500" height="500"></canvas>
+    
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script type="text/javascript">
+            /* global $*/
+            
+            // based on https://www.w3schools.com/graphics/canvas_coordinates.asp
+            function drawCircle(x,y){
+                let c = $("#myCanvas").get(0);
+                let ctx = c.getContext("2d");
+                
+                let radius = (Math.random() * 255) + 1;
+                let r = parseInt((Math.random() * 256)),
+                    g = parseInt((Math.random() * 256)),
+                    b = parseInt((Math.random() * 256));
+                
+                ctx.beginPath();
+                ctx.arc(x,y,radius,0,2*Math.PI);
+                ctx.stroke();
+                
+                //give random color
+                ctx.fillStyle = `rgb(${r},${g},${b})`;
+                ctx.fill();
+            }
+            
+            $(document).ready(function(){
+                $("#myCanvas") .on('click',function(e){
+                    console.log(e);
+                    //draw on next animation frame
+                    requestAnimationFrame(function(){
+                        drawCircle(e.pageX,e.pageY);    
+                    });
+                })
+            });
+        </script>
+    </body>
+</html>
