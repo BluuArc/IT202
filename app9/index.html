@@ -21,6 +21,11 @@
                 let c = $("#myCanvas").get(0);
                 let ctx = c.getContext("2d");
                 
+                x = (!isNaN(x) ? +x : Math.floor(Math.random() * c.width));
+                y = (!isNaN(y) ? +y : Math.floor(Math.random() * c.height));
+                
+                console.log("loop",x,y);
+                
                 let radius = (Math.random() * 255) + 1;
                 let r = parseInt((Math.random() * 256)),
                     g = parseInt((Math.random() * 256)),
@@ -33,15 +38,15 @@
                 //give random color
                 ctx.fillStyle = `rgb(${r},${g},${b})`;
                 ctx.fill();
+                
+                requestAnimationFrame(() => drawCircle());
             }
             
             $(document).ready(function(){
                 $("#myCanvas") .on('click',function(e){
                     console.log(e);
                     //draw on next animation frame
-                    requestAnimationFrame(function(){
-                        drawCircle(e.pageX,e.pageY);    
-                    });
+                    drawCircle(e.pageX,e.pageY);    
                 })
             });
         </script>

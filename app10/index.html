@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>App 10</title>
+        
+        <style type="text/css">
+            #myCanvas {
+                border: 1px gray solid;
+            }
+        </style>
+    </head>
+    <body>
+        
+        <canvas id="myCanvas" width="800" height="600"></canvas>
+    
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+        <script type="text/javascript">
+            /* global $*/
+            // based on https://www.w3schools.com/graphics/game_components.asp
+            let gameArea = {
+                canvas: undefined,
+                data: {
+                    width: -1,
+                    height: -1,
+                    current: {
+                        x: -1,
+                        y: -1
+                    },
+                    circle: undefined,
+                    lastUpdateTime: 0
+                },
+                clear: function(){
+                    this.canvas.getContext("2d").clearRect(0, 0, this.canvas.width, this.canvas.height);
+                }
+            };
+            const keyCodeMap = {
+                 '38': {
+                     name: 'up',
+                     fn: function(target){
+                         target.move(0,-5);
+                     }
+                 },
+                 '40': {
+                     name: 'down',
+                     fn: function(target){
+                         target.move(0,5);
+                     }
+                 },
+                 '37': {
+                     name: 'left',
+                     fn: function(target){
+                         target.move(-5,0);
+                     }
+                 },
+                 '39': {
+                     name: 'right',
+                     fn: function(target){
+                         target.move(5,0);
+                     }
+                 }
+            };
+            
+            
+            function Circle(radius,x,y,color, context){
+                this.radius = radius;
+                this.x = x;
+                this.y = y;
+                
+                
+                this.update = function(){
+                    let ctx = context;
+                    
+                    ctx.beginPath();
+                    ctx.arc(this.x,this.y,this.radius,0,2*Math.PI);
+                    ctx.stroke();
+                    
+                    //color circle
+                    ctx.fillStyle = color;
+                    ctx.fill();
+                },
+                this.move = function(dX,dY){ //move randomly or by a specified amount
+                    this.x += (!isNaN(dX) ? +dX : parseInt(Math.random() * 10));
+                    this.y += (!isNaN(dY) ? +dY : parseInt(Math.random() * 10));
+                    this.update();
+                }
+            }
+            
+            // based on https://www.w3schools.com/graphics/canvas_coordinates.asp
+            function drawCircle(x,y){
+                let radius = (Math.random() * 255) + 1;
+                let r = parseInt((Math.random() * 256)),
+                    g = parseInt((Math.random() * 256)),
+                    b = parseInt((Math.random() * 256));
+                    
+                let newCircle = new Circle(radius,x,y,`rgb(${r},${g},${b})`,gameArea.canvas.getContext("2d"));
+                newCircle.update();
+                return newCircle;
+            }
+            
+            function drawPlayer(x,y){
+                if(!gameArea.circle){ //create a circle if it doesn't exist
+                    gameArea.circle = drawCircle(x,y);
+                }
+            }
+            
+            // loosely based on https://developer.mozilla.org/en-US/docs/Web/API/window/requestAnimationFrame
+            function draw(){
+                gameArea.clear();
+                gameArea.circle.update();
+                requestAnimationFrame(draw);
+            }
+            
+            function sizeCanvas(){
+                let $canvas = $("#myCanvas");
+                $canvas.attr("width", $("body").width());
+                $canvas.attr("height", $("body").height());
+                gameArea.canvas = $canvas.get(0);
+                gameArea.data.width = +($canvas.attr("width"));
+                gameArea.data.height = +($canvas.attr("height"));
+            }
+            
+            $(document).ready(function(){
+                //initialize gameArea
+                sizeCanvas();
+                
+                
+                //create on click
+                $("#myCanvas") .on('click',function(e){
+                    if(!gameArea.circle){ //create a circle
+                        drawPlayer(e.pageX,e.pageY);
+                        requestAnimationFrame(draw);
+                    }
+                });
+                
+                
+                //add keyboard handlers
+                $("body").on("keydown", function(e){
+                    // console.log(e.keyCode);
+                    e.preventDefault();
+                    if(gameArea.circle && keyCodeMap[e.keyCode.toString()]){
+                        keyCodeMap[e.keyCode.toString()].fn(gameArea.circle);
+                    }
+                });
+                
+            });
+        </script>
+    </body>
+</html>
