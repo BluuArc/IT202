@@ -96,6 +96,11 @@
                     }
                     
                     this.update();
+                },
+                this.moveTo = function(x,y){
+                    this.x = (!isNaN(x)) ? x : this.x;
+                    this.y = (!isNaN(y)) ? y : this.y;
+                    this.update();
                 }
             }
             
@@ -142,6 +147,8 @@
                     if(!gameArea.circle){ //create a circle
                         drawPlayer(e.pageX,e.pageY);
                         requestAnimationFrame(draw); //start draw loop
+                    }else{
+                        gameArea.circle.moveTo(e.pageX,e.pageY);
                     }
                 });
                 
