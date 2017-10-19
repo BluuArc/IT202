@@ -1,228 +1,388 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>App 10 - Alternate</title>
-        <style type="text/css">
-            #myCanvas {
-                border: 1px gray solid;
-            }
-        </style>
-    </head>
-    <body>
+
+<head>
+    <title>App 10 - Alternate</title>
+    <style type="text/css">
+        #myCanvas {
+            border: 1px gray solid;
+        }
         
-        <canvas id="myCanvas" width="800" height="600"></canvas>
+        body {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="myCanvas" width="800" height="600"></canvas>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+        /* global $*/
+
+        /* teacher-given template starts here */
+        // global variables
+        // objects for game, player, harm and bene
+        let game = {
+            score: 0,
+            lives: 3,
+            keysPressed: {}
+        };
+
+        let player = {
+            x: 25,
+            y: 25,
+            speed: {
+                x: 0,
+                y: 0
+            },
+            shape: 'circle',
+            shapeData: {
+                color: 'blue',
+                radius: 25
+            }
+        };
+
+        let harm = {
+            x: 0,
+            y: 0,
+            auto: true,
+            speed: {
+                x: 0,
+                y: 0
+            },
+            shape: 'circle',
+            shapeData: {
+                color: 'red',
+                radius: 25
+            }
+        };
+
+        let bene = {
+            x: 0,
+            y: 0,
+            auto: true,
+            speed: {
+                x: 0,
+                y: 0
+            },
+            shape: 'circle',
+            shapeData: {
+                color: 'green',
+                radius: 25
+            }
+        };
+
+        // canvas and context reference
+        let canvas, context;
+
+        // based on https://www.w3schools.com/graphics/canvas_coordinates.asp
+        function drawCircle(x, y, radius, color) {
+
+            x = (!isNaN(x) ? +x : Math.floor(Math.random() * context.width));
+            y = (!isNaN(y) ? +y : Math.floor(Math.random() * context.height));
+
+            radius = (!isNaN(radius)) ? +radius : ((Math.random() * 255) + 1);
+            let r = parseInt((Math.random() * 256)),
+                g = parseInt((Math.random() * 256)),
+                b = parseInt((Math.random() * 256));
+
+            context.beginPath();
+            context.arc(x, y, radius, 0, 2 * Math.PI);
+            context.stroke();
+
+            //give random color
+            context.fillStyle = color || `rgb(${r},${g},${b})`;
+            context.fill();
+        }
+
+        function checkBounds(character) {
+            if (reachedEdge(character, 'top')) {
+                character.y = canvas.height;
+            }
+            else if (reachedEdge(character, 'bottom')) {
+                character.y = 0;
+            }
+
+            if (reachedEdge(character, 'left')) {
+                character.x = canvas.width;
+            }
+            else if (reachedEdge(character, 'right')) {
+                character.x = 0;
+            }
+        }
+
+        function setCharacterSpeed(character, x, y) {
+            const default_speed = 5,
+                max_speed = default_speed * 5;
+
+            if (!isNaN(y)) {
+                character.speed.y = +y;
+            }
+            else if (!character.auto) {
+                character.speed.y = 0;
+                if (game.keysPressed.ArrowUp) {
+                    character.speed.y -= default_speed;
+                }
+                else if (game.keysPressed.ArrowDown) {
+                    character.speed.y += default_speed;
+                }
+            }
+
+            if (!isNaN(x)) {
+                character.speed.x = +x;
+            }
+            else if (!character.auto) {
+                character.speed.x = 0;
+                if (game.keysPressed.ArrowLeft) {
+                    character.speed.x -= default_speed;
+                }
+                else if (game.keysPressed.ArrowRight) {
+                    character.speed.x += default_speed;
+                }
+            }
+
+
+            if (!character.auto && game.keysPressed.Shift) {
+                if (isNaN(x))
+                    character.speed.x *= 5;
+
+                if (isNaN(y))
+                    character.speed.y *= 5;
+            }
+
+            if (character.speed.x > max_speed) {
+                character.speed.x = max_speed;
+            }
+            else if (character.speed.x < -max_speed) {
+                character.speed.x = -max_speed;
+            }
+
+            if (character.speed.y > max_speed) {
+                character.speed.y = max_speed;
+            }
+            else if (character.speed.y < -max_speed) {
+                character.speed.y = -max_speed;
+            }
+
+            if (typeof character.ai === "function") { //custom move function
+                character.ai();
+            }
+        }
+
+        function draw() {
+            // update character position properties
+            clearCanvas(canvas);
+
+            let game_pieces = [player, harm, bene];
+
+            if (areColliding(player, harm)) {
+                if(--game.lives < 0){
+                    game.lives = 3;
+                    game.score = 0;
+                }
+            	resetPositions()
+            }
+            else if (areColliding(player, bene)) {
+                ++game.score;
+                resetPositions();
+            }
+
+            for (let g of game_pieces) {
+                setCharacterSpeed(g);
+                moveCharacter(g);
+                checkBounds(g);
+                drawCharacter(g);
+            }
+
+
+            checkBounds(player);
+            checkBounds(harm);
+            checkBounds(bene);
+
+            drawCharacter(player);
+            drawCharacter(harm);
+            drawCharacter(bene);
+
+            context.fillStyle = "black";
+            context.font = "30px Arial";
+            context.fillText(`Score: ${game.score}`, 0, 30);
+            context.fillText(`Lives Left: ${game.lives}`, 0, 60);
+
+            requestAnimationFrame(draw);
+        }
+
+        function clearCanvas(targetCanvas) {
+            targetCanvas.getContext("2d").clearRect(0, 0, targetCanvas.width, targetCanvas.height);
+        }
+
+        // loosely based off of https://www.w3schools.com/graphics/tryit.asp?filename=trygame_movement_keyboard
+        function moveCharacter(character) {
+            character.x += character.speed.x;
+            character.y += character.speed.y;
+        }
+
+        function drawCharacter(character) {
+            switch (character.shape) {
+                case 'circle':
+                    drawCircle(character.x + character.speed.x, character.y + character.speed.y, character.shapeData.radius, character.shapeData.color);
+                    break;
+                case 'square':
+                    // call function to draw square
+                    break;
+                case 'image':
+                    // call function to draw image
+                    break;
+                default:
+                    console.log('character.shape case fell through');
+            }
+        }
+
+        function getPointDistance(x1, y1, x2, y2) {
+            let diffX = x2 - x1,
+                diffY = y2 - y1;
+            return Math.sqrt(diffX * diffX + diffY * diffY);
+        }
+
+        function areColliding(character1, character2) {
+            // use 2d collision for circles
+            if (character1.shape === 'circle' && character2.shape === 'circle') {
+                let pointDistance = getPointDistance(character1.x, character1.y, character2.x, character2.y);
+                let radiusSum = character1.shapeData.radius + character2.shapeData.radius;
+                return pointDistance < radiusSum;
+            }
+            else {
+                return false;
+            }
+        }
+
+        function reachedEdge(character, edge) {
+            switch (edge) {
+                case 'bottom':
+                    return character.y > canvas.height;
+                case 'left':
+                    return character.x < 0;
+                case 'right':
+                    return character.x > canvas.width;
+                case 'top':
+                    return character.y < 0;
+                case 'any':
+                    return  reachedEdge(character,'bottom') || reachedEdge(character,'top') ||
+                            reachedEdge(character,'left') || reachedEdge(character,'right');
+                default:
+                    console.log("Unknown edge", edge);
+                    return false;
+            }
+        }
+        
+        function resetPositions(){
+            harm.x = Math.random() * canvas.width;
+            harm.y = Math.random() * canvas.height;
+
+            bene.x = Math.random() * canvas.width;
+            bene.y = Math.random() * canvas.height;
+        }
+
+        $(document).ready(function() {
+            //initialize vars
+            canvas = $("#myCanvas").get(0);
+            canvas.width = $("body").width();
+            canvas.height = $("body").height();
+            context = canvas.getContext("2d");
+
+            harm.x = Math.random() * canvas.width;
+            harm.y = Math.random() * canvas.height;
+
+            bene.x = Math.random() * canvas.width;
+            bene.y = Math.random() * canvas.height;
+
+            //set harm AI
+            setCharacterSpeed(harm, 3, 3);
+            harm.ai = function() { //home in on player
+                let diffX = player.x - this.x,
+                    diffY = player.y - this.y;
+                let minProximity = 0;
+
+                if ((diffX > minProximity && this.speed.x < 0) || //player is to the right
+                    (diffX < minProximity && this.speed.x > 0)) { //player is to the left
+                    this.speed.x *= -1;
+                }
+                else if (diffX === 0) {
+                    this.speed.x = 0;
+                }
+
+                if ((diffY > minProximity && this.speed.y < 0) || //player is to the below
+                    (diffY < minProximity && this.speed.y > 0)) { //player is to the above
+                    this.speed.y *= -1;
+                }
+                else if (diffY === 0) {
+                    this.speed.y = 0;
+                }
+            };
+
+            //set bene AI - opposite of harm AI
+            setCharacterSpeed(bene, 6, 6);
+            bene.ai = function() { //home in on player
+                let diffX = player.x - this.x,
+                    diffY = player.y - this.y;
+                let minProximity = player.shapeData.radius * 5;
+
+                //if close by player, run away, else, get a little closer
+                if (Math.abs(diffX) < minProximity && Math.abs(diffY) < minProximity) { //run away
+                
+                    if ((diffX > minProximity && this.speed.x > 0) || //player is to the right
+                        (diffX < minProximity && this.speed.x < 0)) { //player is to the left
+                        this.speed.x *= -1;
+                    }
     
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-        <script type="text/javascript">
-            /* global $*/
-            
-            /* teacher-given template starts here */
-            // global variables
-            // objects for game, player, harm and bene
-            let game = {
-                score: 0,
-                lives: 3,
-                keysPressed: {}
-            };
-            
-            let player = {
-                x: 25,
-                y: 25,
-                shape: 'circle',
-                shapeData: {
-                    color: 'blue',
-                    radius: 25
-                }
-            };
-            
-            let harm = {
-                x: 0,
-                y: 0,
-                shape: 'circle',
-                shapeData: {
-                    color: 'red',
-                    radius: 25
-                }
-            };
-            
-            let bene = {
-                x: 0,
-                y: 0,
-                shape: 'circle',
-                shapeData: {
-                    color: 'green',
-                    radius: 25
-                }
-            };
-            
-            // canvas and context reference
-            let canvas,context;
-            
-            // based on https://www.w3schools.com/graphics/canvas_coordinates.asp
-            function drawCircle(x,y, radius,color){
-                
-                x = (!isNaN(x) ? +x : Math.floor(Math.random() * context.width));
-                y = (!isNaN(y) ? +y : Math.floor(Math.random() * context.height));
-                
-                radius = (!isNaN(radius)) ? +radius : ((Math.random() * 255) + 1);
-                let r = parseInt((Math.random() * 256)),
-                    g = parseInt((Math.random() * 256)),
-                    b = parseInt((Math.random() * 256));
-                
-                context.beginPath();
-                context.arc(x,y,radius,0,2*Math.PI);
-                context.stroke();
-                
-                //give random color
-                context.fillStyle = color || `rgb(${r},${g},${b})`;
-                context.fill();
-            }
-            
-            function checkBounds(character){
-                if(reachedEdge(character,'top')){
-                    character.y = canvas.height;
-                }else if(reachedEdge(character,'bottom')){
-                    character.y = 0;
-                }
-                
-                if(reachedEdge(character,'left')){
-                    character.x = canvas.width;
-                }else if(reachedEdge(character,'right')){
-                    character.x = 0;
-                }
-            }
-            
-            function draw () {
-            	// update character position properties
-            	clearCanvas(canvas);
-            	
-                if (areColliding(player,harm)) {
-                	console.log("player and harm colliding");
-                // 	resetGame()
-                }else if (areColliding(player,bene)) {
-                    console.log("player and bene colliding");
-                // 	resetGame();
+                    if ((diffY > minProximity && this.speed.y > 0) || //player is to the below
+                        (diffY < minProximity && this.speed.y < 0)) { //player is to the above
+                        this.speed.y *= -1;
+                    }
                 }else {
-                    //move player based on keys currently pressed
-                    moveCharacter(player);    
+                    //add speed to get around bounds check
+                    let origX = this.speed.x, origY = this.speed.y;
+                    this.x += origX;
+                    this.y += origY;
+                    if(reachedEdge(this, 'any')) { //go towards
+                        this.x -= 2*origX;
+                        this.y -= 2*origY;
+                        minProximity = 0;
+                        if ((diffX > minProximity && this.speed.x < 0) || //player is to the right
+                            (diffX < minProximity && this.speed.x > 0)) { //player is to the left
+                            this.speed.x *= -1;
+                        }
+                        else if (diffX === 0) {
+                            this.speed.x = 0;
+                        }
+        
+                        if ((diffY > minProximity && this.speed.y < 0) || //player is to the below
+                            (diffY < minProximity && this.speed.y > 0)) { //player is to the above
+                            this.speed.y *= -1;
+                        }
+                        else if (diffY === 0) {
+                            this.speed.y = 0;
+                        }
+                    }
                 }
-                
-                
-                
-                checkBounds(player);
-                checkBounds(harm);
-                checkBounds(bene);
-                
-                drawCharacter(player);
-                drawCharacter(harm);
-                drawCharacter(bene);
-                
-                context.fillStyle = "black";
-            	context.font = "30px Arial";
-            	context.fillText(`Score: ${game.score}`, 0,30);
-            	context.fillText(`Lives: ${game.lives}`, 0,60);
-                
-                requestAnimationFrame(draw);
-            }
-            
-            function clearCanvas(targetCanvas){
-                targetCanvas.getContext("2d").clearRect(0,0,targetCanvas.width,targetCanvas.height);
-            }
-            
+            };
+
+            draw();
+
+            // arrow key keydown event handlers to change player position
             // loosely based off of https://www.w3schools.com/graphics/tryit.asp?filename=trygame_movement_keyboard
-            function moveCharacter(character){
-                let offsetX = 0, offsetY = 0;
-                let default_speed = 5;
-                if(game.keysPressed.ArrowUp){
-                    offsetY -= default_speed;
-                }else if(game.keysPressed.ArrowDown){
-                    offsetY += default_speed;
-                }
-                
-                if(game.keysPressed.ArrowLeft){
-                    offsetX -= default_speed;
-                }else if(game.keysPressed.ArrowRight){
-                    offsetX += default_speed;
-                }
-                
-                if(game.keysPressed.Shift){
-                    offsetX *= 5;
-                    offsetY *= 5;
-                }
-                
-                character.x += offsetX;
-                character.y += offsetY;
-            }
-            
-            function drawCharacter (character) {
-                switch (character.shape) {
-            		case 'circle' :
-                			drawCircle(character.x, character.y, character.shapeData.radius, character.shapeData.color);
-                			break;
-                    case 'square' :
-                    		// call function to draw square
-                    		break;
-                    case 'image' :
-                    		// call function to draw image
-                    		break;
-                    	default: 
-                    		console.log('character.shape case fell through');	
-                }	
-            }
-            
-            function getPointDistance(x1,y1,x2,y2){
-                let diffX = x2 - x1, diffY = y2 - y1;
-                return Math.sqrt(diffX * diffX + diffY * diffY);
-            }
-            
-            function areColliding(character1,character2) {
-            	// use 2d collision for circles
-                if(character1.shape === 'circle' && character2.shape === 'circle'){
-                    let pointDistance = getPointDistance(character1.x,character1.y,character2.x,character2.y);
-                    let radiusSum = character1.shapeData.radius + character2.shapeData.radius;
-                    return pointDistance < radiusSum;
-                }else{
-                    return false;    
-                }
-            }
-            
-            function reachedEdge(character, edge) {
-                switch(edge){
-                    case 'bottom': return character.y > canvas.height;
-                    case 'left': return character.x < 0;
-                    case 'right': return character.x > canvas.width;
-                    case 'top': return character.y < 0;
-                    default: 
-                        console.log("Unknown edge", edge);
-                        return false;
-                }
-            }
-            
-            $(document).ready(function() {
-                //initialize vars
-                canvas = $("#myCanvas").get(0);
-                canvas.width = $("body").width();
-                context = canvas.getContext("2d");
-                
-                harm.x = Math.random() * canvas.width;
-                harm.y = Math.random() * canvas.height;
-                
-                bene.x = Math.random() * canvas.width;
-                bene.y = Math.random() * canvas.height;
-                
-                draw();
-                
-            	// arrow key keydown event handlers to change player position
-            	// loosely based off of https://www.w3schools.com/graphics/tryit.asp?filename=trygame_movement_keyboard
-            	$("body").keydown(function(e){
-            	    game.keysPressed[e.key] = true;
-            	});
-            	
-            	$("body").keyup(function(e){
-            	    game.keysPressed[e.key] = false;
-            	});
+            $("body").keydown(function(e) {
+                game.keysPressed[e.key] = true;
             });
 
-        </script>
-    </body>
+            $("body").keyup(function(e) {
+                game.keysPressed[e.key] = false;
+            });
+        });
+    </script>
+</body>
+
 </html>
