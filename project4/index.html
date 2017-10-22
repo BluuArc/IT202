@@ -13,6 +13,10 @@
         #gameCanvas {
             border: 1px solid lightgray;
         }
+        
+        .hidden {
+            display: none;
+        }
     </style>
   </head>
   <body>
@@ -25,8 +29,8 @@
             <a class="col" href="https://bluuarc.github.io/IT202/">Other Projects</a>
         </div>
         <div class="row">
-            <div class="col">
-                <canvas id="gameCanvas" width="720" height="300"></canvas>    
+            <div class="col d-flex justify-content-center" style="width: 100%">
+                <canvas id="gameCanvas" width="720" height="400"></canvas>    
             </div>
             
         </div>
@@ -44,23 +48,131 @@
         let game = {
             canvas: undefined,
             score: 0,
-            lives: 0,
+            lives: 2, //remaining
+            uiOffset: 20, //space at bottom of canvas for UI text
+            showHitBoxes: false,
             player: undefined,
             enemies: [],
             allies: [],
             keysPressed: {},
             isPlaying: true,
+            isPaused: false,
+            lastEnemyAdd: 0,
+            pause: function(){
+                if(this.isPlaying)
+                    this.isPaused = !this.isPaused;
+                
+                if(this.isPaused){
+                    this.canvas.context.fillStyle = 'blue';
+                    this.canvas.context.font = "75px bold Arial";
+                    this.canvas.context.textAlign = "center";
+                    this.canvas.context.fillText("GAME PAUSED", this.canvas.width / 2, this.canvas.height / 2);
+                    
+                    this.canvas.context.font = "30px bold Arial";
+                    this.canvas.context.fillText("Press 'p' to unpause", this.canvas.width / 2, this.canvas.height / 2 + 30);    
+                }else{
+                    requestAnimationFrame(() => game.draw());
+                }
+            },
             draw: function()  {
                 if(!(this.isPlaying)){
+                    this.lives--;
+                    if(this.lives < 0){
+                        this.canvas.context.fillStyle = 'red';
+                        this.canvas.context.font = "75px bold Arial";
+                        this.canvas.context.textAlign = "center";
+                        this.canvas.context.fillText("GAME OVER", this.canvas.width / 2, this.canvas.height / 2);
+                        
+                        this.canvas.context.font = "30px bold Arial";
+                        this.canvas.context.fillText("Press 'r' to restart", this.canvas.width / 2, this.canvas.height / 2 + 30);    
+                    }else{
+                        this.restart();
+                    }
+                    
                     return;
                 }
                 
                 this.canvas.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
                 this.player.move();
                 this.player.draw();
-
-
-                requestAnimationFrame(() => {game.draw(); });
+                
+                for(let e of this.enemies){
+                    e.move();
+                    e.draw();
+                }
+                
+                for(let a of this.allies){
+                    a.move();
+                    a.draw();
+                }
+                
+                drawGameUI();
+                
+                //randomly generate enemies
+                if((game.enemies.length < game.maxEnemies && Math.random()*100 < 10) ||
+                    game.lastEnemyAdd > 1000 && Math.random()* 100 < 5){
+                    createEnemy();
+                    game.lastEnemyAdd = 0;
+                }else{
+                    game.lastEnemyAdd++;
+                }
+                
+                //check for collisions
+                let collide = false;
+                for(let e of this.enemies){
+                    if(isColliding(game.player, e)){
+                        collide = true;
+                        game.isPlaying = false;
+                        
+                        if(game.lives > 0){
+                            this.canvas.context.fillStyle = 'red';
+                            this.canvas.context.font = "30px bold Arial";
+                            this.canvas.context.textAlign = "center";
+                            this.canvas.context.fillText("You hit another ship!", this.canvas.width / 2, this.canvas.height / 2);
+                            
+                            this.canvas.context.font = "20px bold Arial";
+                            this.canvas.context.fillText("Restarting shortly...", this.canvas.width / 2, this.canvas.height / 2 + 30);    
+                            setTimeout(() => requestAnimationFrame(() => { game.draw(); }), 3000);
+                        }else{
+                            requestAnimationFrame(() => { game.draw(); });
+                        }
+                    }
+                }
+                
+                if(!collide && !this.isPaused) requestAnimationFrame(() => { game.draw(); });
+                else if(this.isPaused){
+                    this.canvas.context.fillStyle = 'blue';
+                    this.canvas.context.font = "75px bold Arial";
+                    this.canvas.context.textAlign = "center";
+                    this.canvas.context.fillText("GAME PAUSED", this.canvas.width / 2, this.canvas.height / 2);
+                    
+                    this.canvas.context.font = "30px bold Arial";
+                    this.canvas.context.fillText("Press 'p' to unpause", this.canvas.width / 2, this.canvas.height / 2 + 30);    
+                }
+                
+            },
+            restart: function(fullRestart){
+                if(fullRestart){
+                    this.lives = 3;
+                    this.score = 0;    
+                }
+                
+                this.enemies = [];
+                this.allies = [];
+                
+                this.player.position.x = this.canvas.width / 2;
+                this.player.speed.x = 0;
+                game.maxEnemies = parseInt(Math.random() * 10 + 1);
+                
+                //wait 2 frames before restarting
+                this.isPlaying = false;
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() =>{
+                        this.isPlaying = true;
+                        game.draw();  
+                    });
+                });
                 
             }
         };
@@ -68,34 +180,84 @@
         let assets = {
             player: {
                 getSpriteCanvas: function(name,frameNumber){
-                    return $("#assets").find(`#${name}${frameNumber}`).get(0);
+                    return $("#assets").find(`#player${name}${frameNumber}`).get(0);
                 }
             },
+            enemy: {
+                getSpriteCanvas: function(name,frameNumber){
+                    return $("#assets").find(`#enemy${name}${frameNumber}`).get(0);
+                }
+            },
+            life: {
+                getSpriteCanvas: function(name,frameNumber){
+                    return $("#assets").find(`#life${name}${frameNumber}`).get(0);
+                }
+            }
+        };
+        
+        function isColliding(character1, character2){
+            let c1Bounds = {
+                x: [character1.position.x, character1.position.x + character1.frame.size.x],
+                y: [character1.position.y, character1.position.y + character1.frame.size.y],
+            };
+            let c2Bounds = {
+                x: [character2.position.x, character2.position.x + character2.frame.size.x],
+                y: [character2.position.y, character2.position.y + character2.frame.size.y],
+            };
+            
+            // draw hit boxes
+            if(game.showHitBoxes){
+                game.canvas.strokeStyle = '#000';
+                game.canvas.context.strokeRect(c1Bounds.x[0], c1Bounds.y[0], character1.frame.size.x, character2.frame.size.y);
+                game.canvas.context.strokeRect(c2Bounds.x[0], c2Bounds.y[0], character2.frame.size.x, character2.frame.size.y);    
+            }
+            
+            //check if any edge of c1 is within range of bounds for c2
+            let left = (c1Bounds.x[0] > c2Bounds.x[0] && c1Bounds.x[0] < c2Bounds.x[1]);
+            let right = (c1Bounds.x[1] > c2Bounds.x[0] && c1Bounds.x[1] < c2Bounds.x[1]);
+            let top = (c1Bounds.y[0] > c2Bounds.y[0] && c1Bounds.y[0] < c2Bounds.y[1]);
+            let bottom = (c1Bounds.y[1] > c2Bounds.y[0] && c1Bounds.y[1] < c2Bounds.y[1]);
+            
+            //if((left OR right of c1) && (top OR bottom of c1)) -> collide
+            return (left || right) && (top || bottom);
         }
         
-        // referenced https://www.w3schools.com/tags/canvas_drawimage.asp
-        function initializePlayerSprites(){
+        function drawGameUI(){
+            let context = game.canvas.context;
+            let textY = game.canvas.height - game.uiOffset*0.25;
+            context.textAlign = "start";
+            
+            context.fillStyle = 'black';
+            context.fillRect(0, game.canvas.height - game.uiOffset, game.canvas.width, game.canvas.height);
+            
+            context.font = "15px bold Consolas";
+            context.fillStyle = 'white';
+            context.fillText("Score: " + game.score, 5, textY);
+            
+            context.fillText("Remaining Lives:", game.canvas.width - 165, textY);
+            
+            drawLives();
+        }
+        
+        function drawLives(){
+            let startX = game.canvas.width - 50, startY = game.canvas.height - game.uiOffset;
+            for(let i = 0; i < game.lives; ++i){
+                game.canvas.context.drawImage(assets.life.getSpriteCanvas('life',0), startX,startY);
+                startX += 25;
+            }
+        }
+        
+        function createFrames(frameInfo, sizeX, sizeY, assetLabel){
             let assetsGroup = $("#assets");
             let sheet = $('#assets img').get(0);
             
-            const sizeX = 14, sizeY = 15; //each frame is sizeX x sizeY
-            // contains coords of top left of each frame
-            const frameInfo = {
-                idle: [{x: 52, y: 1}, {x: 69, y: 1}, {x: 86, y:1}],
-                turn1R: [{x: 52, y: 18}, {x: 69, y: 18}, {x: 86, y:18}],
-                turn1L: [{x: 52, y: 18, flip: true}, {x: 69, y: 18, flip: true}, {x: 86, y:18, flip: true}],
-                turn2R: [{x: 52, y: 35}, {x: 69, y: 35}, {x: 86, y:35}],
-                turn2L: [{x: 52, y: 35,flip: true}, {x: 69, y: 35, flip: true}, {x: 86, y:35, flip: true}],
-            }
-            
-            //bottom left of idle: (52,15); top right of idle: (99 + 1, 1)
             for(let type in frameInfo){
                 for(let i in frameInfo[type]){
                     let id = type + i;
                     let curFrame = frameInfo[type][i];
-                    assetsGroup.append(`<canvas id="${id}"></canvas>`);
+                    assetsGroup.append(`<canvas id="${assetLabel + id}"></canvas>`);
                         
-                    let curCanvas = assetsGroup.find('#' + id)
+                    let curCanvas = assetsGroup.find('#' + assetLabel + id)
                         .css('height', `${sizeY*2}px`).get(0);
                     curCanvas.width = sizeX*2, curCanvas.height = sizeY*2; //scale up to be more visible
                     if(curFrame.flip){
@@ -109,8 +271,40 @@
                     }
                 }
             }
+        }
+        
+        // referenced https://www.w3schools.com/tags/canvas_drawimage.asp
+        function initializeSprites(){
+            //coords are top left of each frame
+            const playerFrames = {
+                idle: [{x: 52, y: 1}, {x: 69, y: 1}, {x: 86, y:1}],
+                turn1R: [{x: 52, y: 18}, {x: 69, y: 18}, {x: 86, y:18}],
+                turn1L: [{x: 52, y: 18, flip: true}, {x: 69, y: 18, flip: true}, {x: 86, y:18, flip: true}],
+                turn2R: [{x: 52, y: 35}, {x: 69, y: 35}, {x: 86, y:35}],
+                turn2L: [{x: 52, y: 35,flip: true}, {x: 69, y: 35, flip: true}, {x: 86, y:35, flip: true}],
+            };
             
-            assets.player.names = Object.keys(frameInfo);
+            const enemyFrames = {
+                idle: [{x: 129, y: 34}],
+                turn1R: [{x: 114, y: 34}],
+                turn1L: [{x: 114, y: 34, flip: true}],
+                turn2R: [{x: 101, y: 34}],
+                turn2L: [{x: 101, y: 34, flip: true}],
+            };
+            
+            const lifeSprite = {
+                life: [{x: 0, y: 90}]
+            }
+            
+            
+            createFrames(playerFrames,14,15, 'player');
+            assets.player.names = Object.keys(playerFrames);
+            
+            createFrames(enemyFrames,14,15, 'enemy');
+            assets.enemy.names = Object.keys(enemyFrames);
+            
+            createFrames(lifeSprite,8,8, 'life');
+            assets.life.names = Object.keys(lifeSprite);
         }
         
         function initializePlayer(){
@@ -123,17 +317,17 @@
                     current: 0,
                     sinceUpdate: 0,
                     number: 3,
-                    size: {
-                        x: 14,
-                        y: 15
+                    size: { //mult by 2 since canvas copy was scaled
+                        x: 14*2,
+                        y: 15*2
                     }
                 },
                 position: {
                     x: game.canvas.width / 2,
-                    y: game.canvas.height - 30,    
+                    y: game.canvas.height - 30 - game.uiOffset,
                 },
                 move: function(){
-                    const max = this.speed.max;
+                    const max = game.keysPressed.Shift ? this.speed.max * 1.5 : this.speed.max;
                     
                     if(game.keysPressed.ArrowLeft){
                         this.speed.x -= game.keysPressed.Shift ? 4 : 2;
@@ -177,7 +371,6 @@
                     if(this.position.x < 0){
                         this.position.x = 0;
                     }else if(this.position.x + this.frame.size.x * 1.5 > game.canvas.width){
-                        console.log("reached right edge");
                         this.position.x = game.canvas.width - this.frame.size.x * 1.5;
                     }
                     
@@ -195,21 +388,152 @@
             
         }
         
+        function createEnemy(){
+            let enemy = {
+                speed: {
+                    x: 1,
+                    y: 5,
+                    max: 10,
+                    isMovingRight: false,
+                    isWaiting: false
+                },
+                frame: {
+                    current: 0,
+                    sinceUpdate: 0,
+                    number: 1,
+                    sinceUpdateMax: 30,
+                    size: {//mult by 2 since canvas copy was scaled
+                        x: 14*2,
+                        y: 15*2
+                    }
+                },
+                position: {
+                    x: parseInt(Math.random() * game.canvas.width),
+                    y: 0,    
+                },
+                move: function(){
+                    const max = this.speed.max;
+                    
+                    if(game.keysPressed.ArrowUp){
+                        this.speed.y += game.keysPressed.Shift ? 4 : 2;
+                    }else if(game.keysPressed.ArrowDown){
+                        this.speed.y -= game.keysPressed.Shift ? 2 : 1;
+                    }else{ //slowly go to normal speed
+                        if(this.speed.y > 5){
+                            this.speed.y -= 1;
+                        }else if(this.speed.y < 5){
+                            this.speed.y = 5;
+                        }
+                    }
+                    
+                    //move in a zig-zag motion
+                    if(this.speed.x > max){
+                        this.speed.x = max-1;
+                        this.speed.isMovingRight = false;
+                        this.speed.isWaiting = true;
+                        this.frame.sinceUpdateMax = parseInt(Math.random() * 51);
+                    }else if(this.speed.x < -max){
+                        this.speed.x = -max + 1;
+                        this.speed.isMovingRight = true;
+                        this.speed.isWaiting = true;
+                        this.frame.sinceUpdateMax = parseInt(Math.random() * 51);
+                    }else if(this.speed.x === 0 && this.speed.isWaiting){
+                        if(this.frame.sinceUpdate > this.frame.sinceUpdateMax){ //wait 30 frames before moving again
+                            this.frame.sinceUpdate = 0;
+                            this.speed.isWaiting = false;
+                        }
+                    }else{
+                        this.speed.x = parseInt(this.speed.x); //avoids having floats for speed
+                        this.speed.x += (this.speed.isMovingRight) ? 1 : -1;
+                    }
+                    
+                    //make sure speed doesn't exceed max
+                    if(this.speed.y < 5){
+                        this.speed.y = 5;
+                    }else if(this.speed.y > max){
+                        this.speed.y = max;
+                    }
+                    
+                },
+                draw: function(){
+                    let sprite;
+                    if(this.speed.x === 0){
+                        sprite = assets.enemy.getSpriteCanvas('idle', this.frame.current);
+                    }else if(this.speed.x > 0){
+                        if(this.speed.x < this.speed.max / 2){
+                            sprite = assets.enemy.getSpriteCanvas('turn1R', this.frame.current);
+                        }else{
+                            sprite = assets.enemy.getSpriteCanvas('turn2R', this.frame.current);
+                        }
+                    }else if(this.speed.x < 0){
+                        if(this.speed.x > -this.speed.max / 2){
+                            sprite = assets.enemy.getSpriteCanvas('turn1L', this.frame.current);
+                        }else{
+                            sprite = assets.enemy.getSpriteCanvas('turn2L', this.frame.current);
+                        }
+                    }
+                    
+                    this.position.x += this.speed.x;
+                    this.position.y += this.speed.y;
+                    
+                    //reached left/right edge, so teleport to other side
+                    if(this.position.x < 0){
+                        this.position.x = game.canvas.width - this.frame.size.x * 1.5;
+                    }else if(this.position.x + this.frame.size.x * 1.5 > game.canvas.width){
+                        this.position.x = 0;
+                    }
+                    
+                    //reached bottom -> start at top and randomize wait/speed values
+                    if(this.position.y > game.canvas.height - this.frame.size.y - game.uiOffset){
+                        this.position.y = -this.frame.size.y * 2;
+                        this.position.x = parseInt(Math.random() * game.canvas.width);
+                        this.speed.max = parseInt(Math.random() * 20 + 5);
+                    }
+                    
+                    game.canvas.context.drawImage(sprite, this.position.x,this.position.y);
+                    
+                    
+                    //update frame counter
+                    this.frame.current++;
+                    this.frame.sinceUpdate++;
+                    if(this.frame.current >= this.frame.number){
+                        this.frame.current = 0;
+                    }
+                }
+            };
+            game.enemies.push(enemy);
+        }
+        
         $(document).ready(function(){
-            initializePlayerSprites();
+            initializeSprites();
            
             //initialize canvas
             game.canvas = $("canvas#gameCanvas").get(0);
             game.canvas.context = game.canvas.getContext('2d');
             
             initializePlayer();
+            game.maxEnemies = parseInt(Math.random() * 10 + 1);
+            
             
             $("body").keydown((e) => {
-               game.keysPressed[e.key] = true;
+                game.keysPressed[e.key] = true;
             });
             
             $("body").keyup((e) => {
-               game.keysPressed[e.key] = false;
+                game.keysPressed[e.key] = false;
+                
+                if(e.key === 'r' && game.lives < 0 && game.isPlaying === false){
+                    game.restart(true);
+                }
+                
+                if(e.key === 'h'){
+                    game.showHitBoxes = !game.showHitBoxes;
+                }
+                
+                // disabled as it's currently buggy
+                // if(e.key === 'p'){
+                //     game.pause();
+                // }
             });
             
             game.draw();
