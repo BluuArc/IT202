@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Project 4</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    
+    <style type="text/css">
+        #gameCanvas {
+            border: 1px solid lightgray;
+        }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+        <div class="row">
+            <h1 class="col text-center">Project 4</h1>    
+        </div>
+        <div class="row text-center">
+            <a class="col" href="https://github.com/IT202/project4">Prompt</a>
+            <a class="col" href="https://bluuarc.github.io/IT202/">Other Projects</a>
+        </div>
+        <div class="row">
+            <div class="col">
+                <canvas id="gameCanvas" width="720" height="300"></canvas>    
+            </div>
+            
+        </div>
+        <div class="row hidden" id="assets">
+            <!-- sprite sheet source: https://jonathan-so.itch.io/creatorpack -->
+            <img src="assets/Shooter_SpriteSheet.png">
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        /* global $ */
+        let game = {
+            canvas: undefined,
+            score: 0,
+            lives: 0,
+            player: undefined,
+            enemies: [],
+            allies: [],
+            keysPressed: {},
+            isPlaying: true,
+            draw: function()  {
+                if(!(this.isPlaying)){
+                    return;
+                }
+                
+                this.canvas.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                this.player.move();
+                this.player.draw();
+
+
+                requestAnimationFrame(() => {game.draw(); });
+                
+            }
+        };
+        
+        let assets = {
+            player: {
+                getSpriteCanvas: function(name,frameNumber){
+                    return $("#assets").find(`#${name}${frameNumber}`).get(0);
+                }
+            },
+        }
+        
+        // referenced https://www.w3schools.com/tags/canvas_drawimage.asp
+        function initializePlayerSprites(){
+            let assetsGroup = $("#assets");
+            let sheet = $('#assets img').get(0);
+            
+            const sizeX = 14, sizeY = 15; //each frame is sizeX x sizeY
+            // contains coords of top left of each frame
+            const frameInfo = {
+                idle: [{x: 52, y: 1}, {x: 69, y: 1}, {x: 86, y:1}],
+                turn1R: [{x: 52, y: 18}, {x: 69, y: 18}, {x: 86, y:18}],
+                turn1L: [{x: 52, y: 18, flip: true}, {x: 69, y: 18, flip: true}, {x: 86, y:18, flip: true}],
+                turn2R: [{x: 52, y: 35}, {x: 69, y: 35}, {x: 86, y:35}],
+                turn2L: [{x: 52, y: 35,flip: true}, {x: 69, y: 35, flip: true}, {x: 86, y:35, flip: true}],
+            }
+            
+            //bottom left of idle: (52,15); top right of idle: (99 + 1, 1)
+            for(let type in frameInfo){
+                for(let i in frameInfo[type]){
+                    let id = type + i;
+                    let curFrame = frameInfo[type][i];
+                    assetsGroup.append(`<canvas id="${id}"></canvas>`);
+                        
+                    let curCanvas = assetsGroup.find('#' + id)
+                        .css('height', `${sizeY*2}px`).get(0);
+                    curCanvas.width = sizeX*2, curCanvas.height = sizeY*2; //scale up to be more visible
+                    if(curFrame.flip){
+                        //flip code based on https://stackoverflow.com/a/3129152/8530126
+                        let context = curCanvas.getContext('2d');
+                        context.translate(curCanvas.width,0);
+                        context.scale(-1,1);
+                        context.drawImage(sheet,curFrame.x,curFrame.y,sizeX,sizeY,0,0,curCanvas.width,curCanvas.height);
+                    }else{
+                        curCanvas.getContext('2d').drawImage(sheet,curFrame.x,curFrame.y,sizeX,sizeY,0,0,curCanvas.width,curCanvas.height);    
+                    }
+                }
+            }
+            
+            assets.player.names = Object.keys(frameInfo);
+        }
+        
+        function initializePlayer(){
+            game.player = {
+                speed: {
+                    x: 0,
+                    max: 10
+                },
+                frame: {
+                    current: 0,
+                    sinceUpdate: 0,
+                    number: 3,
+                    size: {
+                        x: 14,
+                        y: 15
+                    }
+                },
+                position: {
+                    x: game.canvas.width / 2,
+                    y: game.canvas.height - 30,    
+                },
+                move: function(){
+                    const max = this.speed.max;
+                    
+                    if(game.keysPressed.ArrowLeft){
+                        this.speed.x -= game.keysPressed.Shift ? 4 : 2;
+                    }else if(game.keysPressed.ArrowRight){
+                        this.speed.x += game.keysPressed.Shift ? 4 : 2;
+                    }else{ //slowly stop moving left
+                        if(this.speed.x < 0){
+                            this.speed.x += 1;
+                        }else if(this.speed.x > 0){
+                            this.speed.x -= 1;
+                        }
+                    }
+                    
+                    //make sure speed doesn't exceed max
+                    if(this.speed.x < -max){
+                        this.speed.x = -max;
+                    }else if(this.speed.x > max){
+                        this.speed.x = max;
+                    }
+                },
+                draw: function(){
+                    let sprite;
+                    if(this.speed.x === 0){
+                        sprite = assets.player.getSpriteCanvas('idle', this.frame.current);
+                    }else if(this.speed.x > 0){
+                        if(this.speed.x < this.speed.max / 2){
+                            sprite = assets.player.getSpriteCanvas('turn1R', this.frame.current);
+                        }else{
+                            sprite = assets.player.getSpriteCanvas('turn2R', this.frame.current);
+                        }
+                    }else if(this.speed.x < 0){
+                        if(this.speed.x > -this.speed.max / 2){
+                            sprite = assets.player.getSpriteCanvas('turn1L', this.frame.current);
+                        }else{
+                            sprite = assets.player.getSpriteCanvas('turn2L', this.frame.current);
+                        }
+                    }
+                    
+                    this.position.x += this.speed.x;
+                    
+                    if(this.position.x < 0){
+                        this.position.x = 0;
+                    }else if(this.position.x + this.frame.size.x * 1.5 > game.canvas.width){
+                        console.log("reached right edge");
+                        this.position.x = game.canvas.width - this.frame.size.x * 1.5;
+                    }
+                    
+                    game.canvas.context.drawImage(sprite, this.position.x,this.position.y);
+                    
+                    
+                    //update frame counter
+                    this.frame.current++;
+                    this.frame.sinceUpdate++;
+                    if(this.frame.current >= this.frame.number){
+                        this.frame.current = 0;
+                    }
+                }
+            };
+            
+        }
+        
+        $(document).ready(function(){
+            initializePlayerSprites();
+           
+            //initialize canvas
+            game.canvas = $("canvas#gameCanvas").get(0);
+            game.canvas.context = game.canvas.getContext('2d');
+            
+            initializePlayer();
+            
+            $("body").keydown((e) => {
+               game.keysPressed[e.key] = true;
+            });
+            
+            $("body").keyup((e) => {
+               game.keysPressed[e.key] = false;
+            });
+            
+            game.draw();
+            
+            console.log("Ready");
+        });
+        
+        
+    </script>
+  </body>
+</html>
