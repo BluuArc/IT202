@@ -38,6 +38,11 @@
             <!-- sprite sheet source: https://jonathan-so.itch.io/creatorpack -->
             <img src="assets/Shooter_SpriteSheet.png">
         </div>
+        <div class="row">
+            <div class="col">
+                <p>Special thanks to <a href="https://jonathan-so.itch.io/creatorpack">Jonathan So</a> for sprite assets.</p>
+            </div>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
@@ -49,9 +54,13 @@
             canvas: undefined,
             score: 0,
             lives: 2, //remaining
-            uiOffset: 20, //space at bottom of canvas for UI text
+            uiOffset: 20, //space at top of canvas for UI text
             showHitBoxes: false,
             player: undefined,
+            background: {
+                color: 'black',
+                starLocations: []
+            },
             enemies: [],
             allies: [],
             keysPressed: {},
@@ -85,14 +94,14 @@
                         
                         this.canvas.context.font = "30px bold Arial";
                         this.canvas.context.fillText("Press 'r' to restart", this.canvas.width / 2, this.canvas.height / 2 + 30);    
-                    }else{
-                        this.restart();
                     }
                     
                     return;
                 }
                 
                 this.canvas.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                drawBackground();
                 
                 this.player.move();
                 this.player.draw();
@@ -118,6 +127,15 @@
                     game.lastEnemyAdd++;
                 }
                 
+                //randomly generate allies
+                if((game.allies.length < game.maxAllies && Math.random()*100 < 10) ||
+                    game.lastEnemyAdd > 1000 && Math.random()* 100 < 5){
+                    createScoreDrop();
+                    game.lastEnemyAdd = 0;
+                }else{
+                    game.lastEnemyAdd++;
+                }
+                
                 //check for collisions
                 let collide = false;
                 for(let e of this.enemies){
@@ -132,13 +150,25 @@
                             this.canvas.context.fillText("You hit another ship!", this.canvas.width / 2, this.canvas.height / 2);
                             
                             this.canvas.context.font = "20px bold Arial";
-                            this.canvas.context.fillText("Restarting shortly...", this.canvas.width / 2, this.canvas.height / 2 + 30);    
-                            setTimeout(() => requestAnimationFrame(() => { game.draw(); }), 3000);
+                            this.canvas.context.fillText("Press Space to continue", this.canvas.width / 2, this.canvas.height / 2 + 30);    
+                            requestAnimationFrame(() => { game.draw(); });
+                            return;
                         }else{
                             requestAnimationFrame(() => { game.draw(); });
+                            return;
                         }
                     }
                 }
+                
+                
+                for(let a of this.allies){
+                    if(isColliding(game.player,a)){
+                        game.score += 10;
+                        a.isActive = false;
+                    }
+                }
+                
+                this.allies = this.allies.filter((a) => a.isActive);
                 
                 if(!collide && !this.isPaused) requestAnimationFrame(() => { game.draw(); });
                 else if(this.isPaused){
@@ -154,16 +184,21 @@
             },
             restart: function(fullRestart){
                 if(fullRestart){
-                    this.lives = 3;
+                    this.lives = 2;
                     this.score = 0;    
                 }
                 
                 this.enemies = [];
                 this.allies = [];
+                this.background.starLocations = [];
+                this.keysPressed = {};
+                this.isPaused = false;
+                this.lastEnemyAdd = 0;
                 
                 this.player.position.x = this.canvas.width / 2;
                 this.player.speed.x = 0;
-                game.maxEnemies = parseInt(Math.random() * 10 + 1);
+                game.maxEnemies = parseInt(Math.random() * 5 + 1);
+                game.maxAllies = parseInt(Math.random() * 5 + 1);
                 
                 //wait 2 frames before restarting
                 this.isPlaying = false;
@@ -192,8 +227,45 @@
                 getSpriteCanvas: function(name,frameNumber){
                     return $("#assets").find(`#life${name}${frameNumber}`).get(0);
                 }
+            },
+            scoreDrop: {
+                getSpriteCanvas: function(name,frameNumber){
+                    return $("#assets").find(`#scoreDrop${name}${frameNumber}`).get(0);
+                }
             }
         };
+        
+        function drawBackground(){
+            let context = game.canvas.context;
+            context.fillStyle = game.background.color;
+            context.fillRect(0,0,game.canvas.width,game.canvas.height);
+            
+            //randomly add a star
+            if(game.background.starLocations.length < Math.max(game.maxAllies,game.maxEnemies)*2
+                && Math.random() * 100 < 10){
+                    game.background.starLocations.push([parseInt(Math.random() * game.canvas.width),0]);
+                }
+            
+            // filter, draw, and update locations
+            // gradient based off of https://www.w3schools.com/tags/canvas_createlineargradient.asp
+            let starGradient = context.createLinearGradient(0,0,0,150);
+            starGradient.addColorStop(0,"black");
+            starGradient.addColorStop(1,"white");
+            context.fillStyle = starGradient;
+            game.background.starLocations = game.background.starLocations
+                .map((s) => {
+                    context.fillRect(s[0],s[1],5,game.keysPressed.ArrowUp ? 20 : 10);
+                    
+                    if(s[1] >= game.canvas.height){
+                        return [Math.random() * game.canvas.width, 0];
+                    }else{
+                        return [s[0], s[1] + (game.keysPressed.ArrowUp ? 10 : 7)];    
+                    }
+                    
+                    
+                });
+            
+        }
         
         function isColliding(character1, character2){
             let c1Bounds = {
@@ -207,7 +279,7 @@
             
             // draw hit boxes
             if(game.showHitBoxes){
-                game.canvas.strokeStyle = '#000';
+                game.canvas.context.strokeStyle = 'white';
                 game.canvas.context.strokeRect(c1Bounds.x[0], c1Bounds.y[0], character1.frame.size.x, character2.frame.size.y);
                 game.canvas.context.strokeRect(c2Bounds.x[0], c2Bounds.y[0], character2.frame.size.x, character2.frame.size.y);    
             }
@@ -224,11 +296,11 @@
         
         function drawGameUI(){
             let context = game.canvas.context;
-            let textY = game.canvas.height - game.uiOffset*0.25;
+            let textY = game.uiOffset*0.6;
             context.textAlign = "start";
             
             context.fillStyle = 'black';
-            context.fillRect(0, game.canvas.height - game.uiOffset, game.canvas.width, game.canvas.height);
+            context.fillRect(0, 0, game.canvas.width, game.uiOffset);
             
             context.font = "15px bold Consolas";
             context.fillStyle = 'white';
@@ -240,7 +312,7 @@
         }
         
         function drawLives(){
-            let startX = game.canvas.width - 50, startY = game.canvas.height - game.uiOffset;
+            let startX = game.canvas.width - 50, startY = 0;
             for(let i = 0; i < game.lives; ++i){
                 game.canvas.context.drawImage(assets.life.getSpriteCanvas('life',0), startX,startY);
                 startX += 25;
@@ -294,7 +366,11 @@
             
             const lifeSprite = {
                 life: [{x: 0, y: 90}]
-            }
+            };
+            
+            const scoreSprite = {
+                drop10: [{x: 0, y: 66}]
+            };
             
             
             createFrames(playerFrames,14,15, 'player');
@@ -305,6 +381,9 @@
             
             createFrames(lifeSprite,8,8, 'life');
             assets.life.names = Object.keys(lifeSprite);
+            
+            createFrames(scoreSprite,8,6, 'scoreDrop');
+            assets.scoreDrop.names = Object.keys(scoreSprite);
         }
         
         function initializePlayer(){
@@ -324,7 +403,7 @@
                 },
                 position: {
                     x: game.canvas.width / 2,
-                    y: game.canvas.height - 30 - game.uiOffset,
+                    y: game.canvas.height - 50,
                 },
                 move: function(){
                     const max = game.keysPressed.Shift ? this.speed.max * 1.5 : this.speed.max;
@@ -386,6 +465,83 @@
                 }
             };
             
+        }
+        
+        function createScoreDrop(){
+            let scoreDrop = {
+                speed: {
+                    x: 0,
+                    y: 2,
+                    max: 10
+                },
+                frame: {
+                    current: 0,
+                    sinceUpdate: 0,
+                    number: 1,
+                    sinceUpdateMax: 30,
+                    size: {//mult by 2 since canvas copy was scaled
+                        x: 8*2,
+                        y: 6*2
+                    }
+                },
+                position: {
+                    x: parseInt(Math.random() * game.canvas.width),
+                    y: 0,    
+                },
+                isActive: true,
+                move: function(){
+                    const max = this.speed.max;
+                    
+                    if(game.keysPressed.ArrowUp){
+                        this.speed.y += game.keysPressed.Shift ? 4 : 2;
+                    }else if(game.keysPressed.ArrowDown){
+                        this.speed.y -= game.keysPressed.Shift ? 2 : 1;
+                    }else{ //slowly go to normal speed
+                        if(this.speed.y > 5){
+                            this.speed.y -= 1;
+                        }else if(this.speed.y < 5){
+                            this.speed.y = 5;
+                        }
+                    }
+                    
+                    //make sure speed doesn't exceed max
+                    if(this.speed.y < 5){
+                        this.speed.y = 5;
+                    }else if(this.speed.y > max){
+                        this.speed.y = max;
+                    }
+                    
+                },
+                draw: function(){
+                    let sprite = assets.scoreDrop.getSpriteCanvas('drop10', this.frame.current);
+                    
+                    this.position.x += this.speed.x;
+                    this.position.y += this.speed.y;
+                    
+                    //reached left/right edge, so teleport to other side
+                    if(this.position.x < 0){
+                        this.position.x = game.canvas.width - this.frame.size.x * 1.5;
+                    }else if(this.position.x + this.frame.size.x * 1.5 > game.canvas.width){
+                        this.position.x = 0;
+                    }
+                    
+                    //reached bottom -> start at top and randomize wait/speed values
+                    if(this.position.y > game.canvas.height - this.frame.size.y){
+                        this.position.y = -this.frame.size.y * 2;
+                        this.position.x = parseInt(Math.random() * game.canvas.width);
+                    }
+                    
+                    game.canvas.context.drawImage(sprite, this.position.x,this.position.y);
+                    
+                    //update frame counter
+                    this.frame.current++;
+                    this.frame.sinceUpdate++;
+                    if(this.frame.current >= this.frame.number){
+                        this.frame.current = 0;
+                    }
+                }
+            };
+            game.allies.push(scoreDrop);
         }
         
         function createEnemy(){
@@ -484,7 +640,7 @@
                     }
                     
                     //reached bottom -> start at top and randomize wait/speed values
-                    if(this.position.y > game.canvas.height - this.frame.size.y - game.uiOffset){
+                    if(this.position.y > game.canvas.height - this.frame.size.y){
                         this.position.y = -this.frame.size.y * 2;
                         this.position.x = parseInt(Math.random() * game.canvas.width);
                         this.speed.max = parseInt(Math.random() * 20 + 5);
@@ -505,6 +661,7 @@
         }
         
         $(document).ready(function(){
+            $("a").attr("target","_blank");
             initializeSprites();
            
             //initialize canvas
@@ -512,7 +669,8 @@
             game.canvas.context = game.canvas.getContext('2d');
             
             initializePlayer();
-            game.maxEnemies = parseInt(Math.random() * 10 + 1);
+            game.maxAllies = parseInt(Math.random() * 10 + 1);
+            game.maxEnemies = parseInt(Math.random() * 5 + 1);
             
             
             $("body").keydown((e) => {
@@ -530,10 +688,14 @@
                     game.showHitBoxes = !game.showHitBoxes;
                 }
                 
+                if(e.key === ' ' && game.lives >= 0 && game.isPlaying === false){
+                    game.restart();
+                }
+                
                 // disabled as it's currently buggy
-                // if(e.key === 'p'){
-                //     game.pause();
-                // }
+                if(e.key === 'p'){
+                    game.pause();
+                }
             });
             
             game.draw();
