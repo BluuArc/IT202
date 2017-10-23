@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>App 11</title>
+    
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+    <script src="https://unpkg.com/dexie@latest/dist/dexie.js"></script>
+</head>
+<body>
+    <!-- form setup based on https://getbootstrap.com/docs/4.0/components/forms/ -->
+    <form>
+        <div class="form-group">
+            <label for="displayName">Display Name</label>
+            <input type="text" id="displayName" name="displayName" placeholder="Display Name"/>
+        </div>
+        <div class="form-group">
+            <div class="form-check">
+                <label class="form-input-label">
+                    <input type="radio" name="shareLocation" id="shareLocationTrue" value="shareLocationTrue"/>
+                    Do Share Location Data
+                </label>
+            </div>
+            <div class="form-check">
+                <label class="form-input-label">
+                    <input type="radio" name="shareLocation" id="shareLocationFalse" value="shareLocationFalse"/>
+                    Do NOT Share Location Data
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <span id="accessTime"></span>    
+        </div>
+        
+        <input id="submitBtn" type="submit" value="Save Changes"/>
+    </form>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+    
+    <script type="text/javascript">
+        /* global $ Dexie */
+        let db;
+        $(document).ready(function(){
+            // $("#accessTime").text(new Date().toDateString());
+            db = new Dexie("MyDB");
+            db.version(1).stores({
+                settings: "name,value"
+            });
+            db.on("populate",function(){
+                console.log("populating");
+                db.settings.add({name: "displayName", value: "Display Name"});
+                db.settings.add({name: "shareLocationData", value: "false"});
+                db.settings.add({name: "lastAccessed", value: new Date()})
+            });
+            db.open()
+                .then(() => {
+                    return db.settings
+                        .put({name: "displayName", value: "A whole new name"});
+                })
+                .then(() => {
+                    return db.settings
+                        .each((setting) => {
+                            console.log(setting);
+                            if(setting.name === "displayName"){
+                                $("#displayName").val(setting.value);
+                            }else if(setting.name === "shareLocationData"){
+                                console.log(`#shareLocation${setting.value == "true" ? 'True' : 'False'}`)
+                                let selector = $(`#shareLocation${setting.value == "true" ? 'True' : 'False'}`);
+                                selector.attr("checked",true);
+                            }else if(setting.name === "lastAccessed"){
+                                $("#accessTime").text(setting.value);
+                            }
+                        });
+                }).then(() => { //change it back
+                    return db.settings
+                        .put({name: "displayName", value: "Display Name"});
+                });
+                
+                
+            $("#submitBtn").on("click",function(e){
+                e.preventDefault();
+                
+                let form_input = {
+                    displayName: $("#displayName").val(),
+                    shareLocationData: $("#shareLocationTrue").get(0).checked.toString(),
+                    lastAccessed: new Date()
+                };
+                
+                let putArr = [];
+                for(let f in form_input){
+                    putArr.push({name: f, value: form_input[f]});
+                }
+                
+                db.settings.bulkPut(putArr);
+                
+                console.log("clicked");
+            })
+            
+            console.log("Ready");
+        });
+    </script>
+</body>
+</html>
