@@ -32,16 +32,36 @@
             <div class="col d-flex justify-content-center" style="width: 100%">
                 <canvas id="gameCanvas" width="720" height="400"></canvas>    
             </div>
-            
         </div>
         <div class="row hidden" id="assets">
             <!-- sprite sheet source: https://jonathan-so.itch.io/creatorpack -->
             <img src="assets/Shooter_SpriteSheet.png">
         </div>
         <div class="row">
-            <div class="col">
+            <div class="col text-center">
+                Grab the <b style="color:blue;">blue</b> pods.
+            </div>
+            <div class="col text-center">
+                Avoid hitting the <b style="color: red;">red</b> ships
+            </div>
+        </div>
+        <div class="row">
+            <div class="col text-center">
+                <code>Left Arrow Key</code>/<code>Right Arrow Key</code> - Turn Ship
+            </div>
+            <div class="col text-center">
+                <code>Up Arrow Key</code> - Speed Up
+            </div>
+            <div class="col text-center">
+                <code>P</code> - Pause
+            </div>
+        </div>
+        <div class="row">
+            <div class="col text-center">
                 <p>Special thanks to <a href="https://jonathan-so.itch.io/creatorpack">Jonathan So</a> for sprite assets.</p>
             </div>
+            
+            <!--TODO: Add game legend? -->
         </div>
     </div>
 
@@ -350,10 +370,10 @@
             //coords are top left of each frame
             const playerFrames = {
                 idle: [{x: 52, y: 1}, {x: 69, y: 1}, {x: 86, y:1}],
-                turn1R: [{x: 52, y: 18}, {x: 69, y: 18}, {x: 86, y:18}],
-                turn1L: [{x: 52, y: 18, flip: true}, {x: 69, y: 18, flip: true}, {x: 86, y:18, flip: true}],
-                turn2R: [{x: 52, y: 35}, {x: 69, y: 35}, {x: 86, y:35}],
-                turn2L: [{x: 52, y: 35,flip: true}, {x: 69, y: 35, flip: true}, {x: 86, y:35, flip: true}],
+                turn1L: [{x: 52, y: 18}, {x: 69, y: 18}, {x: 86, y:18}],
+                turn1R: [{x: 52, y: 18, flip: true}, {x: 69, y: 18, flip: true}, {x: 86, y:18, flip: true}],
+                turn2L: [{x: 52, y: 35}, {x: 69, y: 35}, {x: 86, y:35}],
+                turn2R: [{x: 52, y: 35,flip: true}, {x: 69, y: 35, flip: true}, {x: 86, y:35, flip: true}],
             };
             
             const enemyFrames = {
