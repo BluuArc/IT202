@@ -569,7 +569,8 @@
                 speed: {
                     x: 1,
                     y: 5,
-                    max: 10,
+                    max: parseInt(Math.random() * 10 + 5),
+                    min: parseInt(Math.random() * 5 + 3),
                     isMovingRight: false,
                     isWaiting: false
                 },
@@ -589,16 +590,17 @@
                 },
                 move: function(){
                     const max = this.speed.max;
+                    const min = this.speed.min;
                     
                     if(game.keysPressed.ArrowUp){
                         this.speed.y += game.keysPressed.Shift ? 4 : 2;
                     }else if(game.keysPressed.ArrowDown){
                         this.speed.y -= game.keysPressed.Shift ? 2 : 1;
                     }else{ //slowly go to normal speed
-                        if(this.speed.y > 5){
+                        if(this.speed.y > min){
                             this.speed.y -= 1;
-                        }else if(this.speed.y < 5){
-                            this.speed.y = 5;
+                        }else if(this.speed.y < min){
+                            this.speed.y = min;
                         }
                     }
                     
@@ -624,8 +626,8 @@
                     }
                     
                     //make sure speed doesn't exceed max
-                    if(this.speed.y < 5){
-                        this.speed.y = 5;
+                    if(this.speed.y < min){
+                        this.speed.y = min;
                     }else if(this.speed.y > max){
                         this.speed.y = max;
                     }
@@ -661,7 +663,7 @@
                     
                     //reached bottom -> start at top and randomize wait/speed values
                     if(this.position.y > game.canvas.height - this.frame.size.y){
-                        this.position.y = -this.frame.size.y * 2;
+                        this.position.y = -this.frame.size.y * parseInt(Math.random() * 5 + 1);
                         this.position.x = parseInt(Math.random() * game.canvas.width);
                         this.speed.max = parseInt(Math.random() * 20 + 5);
                     }
