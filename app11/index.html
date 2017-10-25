@@ -14,15 +14,16 @@
             <input type="text" id="displayName" name="displayName" placeholder="Display Name"/>
         </div>
         <div class="form-group">
+            <label for="shareLocationData">Share Location Data?</label>
             <div class="form-check">
                 <label class="form-input-label">
-                    <input type="radio" name="shareLocation" id="shareLocationTrue" value="shareLocationTrue"/>
+                    <input type="radio" name="shareLocationData" id="shareLocationTrue" value="true"/>
                     Do Share Location Data
                 </label>
             </div>
             <div class="form-check">
                 <label class="form-input-label">
-                    <input type="radio" name="shareLocation" id="shareLocationFalse" value="shareLocationFalse"/>
+                    <input type="radio" name="shareLocationData" id="shareLocationFalse" value="false"/>
                     Do NOT Share Location Data
                 </label>
             </div>
@@ -41,6 +42,22 @@
     <script type="text/javascript">
         /* global $ Dexie */
         let db;
+        
+        function updateForm(argument) {
+            return db.settings
+                .each((setting) => {
+                    console.log(setting);
+                    if(setting.name === "displayName"){
+                        $("#displayName").val(setting.value);
+                    }else if(setting.name === "shareLocationData"){
+                        // based on teacher solution
+                        $(`input[name=${setting.name}][value=${setting.value}]`).prop('checked',true);
+                    }else if(setting.name === "lastAccessed"){
+                        $("#accessTime").text(setting.value);
+                    }
+                });
+        }
+        
         $(document).ready(function(){
             // $("#accessTime").text(new Date().toDateString());
             db = new Dexie("MyDB");
@@ -48,43 +65,22 @@
                 settings: "name,value"
             });
             db.on("populate",function(){
-                console.log("populating");
+                console.log("populating data");
                 db.settings.add({name: "displayName", value: "Display Name"});
-                db.settings.add({name: "shareLocationData", value: "false"});
+                db.settings.add({name: "shareLocationData", value: false});
                 db.settings.add({name: "lastAccessed", value: new Date()})
             });
             db.open()
                 .then(() => {
-                    return db.settings
-                        .put({name: "displayName", value: "A whole new name"});
-                })
-                .then(() => {
-                    return db.settings
-                        .each((setting) => {
-                            console.log(setting);
-                            if(setting.name === "displayName"){
-                                $("#displayName").val(setting.value);
-                            }else if(setting.name === "shareLocationData"){
-                                console.log(`#shareLocation${setting.value == "true" ? 'True' : 'False'}`)
-                                let selector = $(`#shareLocation${setting.value == "true" ? 'True' : 'False'}`);
-                                selector.attr("checked",true);
-                            }else if(setting.name === "lastAccessed"){
-                                $("#accessTime").text(setting.value);
-                            }
-                        });
-                }).then(() => { //change it back
-                    return db.settings
-                        .put({name: "displayName", value: "Display Name"});
+                    return updateForm();
                 });
-                
                 
             $("#submitBtn").on("click",function(e){
                 e.preventDefault();
                 
                 let form_input = {
                     displayName: $("#displayName").val(),
-                    shareLocationData: $("#shareLocationTrue").get(0).checked.toString(),
-                    lastAccessed: new Date()
+                    shareLocationData: $("input[name=shareLocationData]:checked").val() == "true",                    lastAccessed: new Date()
                 };
                 
                 let putArr = [];
@@ -92,9 +88,12 @@
                     putArr.push({name: f, value: form_input[f]});
                 }
                 
+                console.log(putArr);
+                
                 db.settings.bulkPut(putArr);
                 
                 console.log("clicked");
+                updateForm();
             })
             
             console.log("Ready");
