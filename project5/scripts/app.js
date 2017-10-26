@@ -14,8 +14,17 @@
 
 // code source: https://codelabs.developers.google.com/codelabs/your-first-pwapp/index.html#0
 
+var debug = {
+  isDebug: true,
+  log: function(){
+    if(this.isDebug){
+      console.log(...arguments);
+    }
+  }
+};
 
 (function() {
+  /* global localforage */
   'use strict';
 
   var app = {
@@ -26,7 +35,10 @@
     cardTemplate: document.querySelector('.cardTemplate'),
     container: document.querySelector('.main'),
     addDialog: document.querySelector('.dialog-container'),
-    daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+    daysOfWeek: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+    db: localforage.createInstance({
+      name: "project5-pwa"
+    })
   };
 
 
@@ -52,9 +64,12 @@
     var selected = select.options[select.selectedIndex];
     var key = selected.value;
     var label = selected.textContent;
-    // TODO init the app.selectedCities array here
+    if(!app.selectedCities){
+      app.selectedCities = [];
+    }
     app.getForecast(key, label);
-    // TODO push the selected city to the array and save here
+    app.selectedCities.push({key,label});
+    app.saveSelectedCities();
     app.toggleAddDialog(false);
   });
 
@@ -199,6 +214,10 @@
   };
 
   // TODO add saveSelectedCities function here
+  app.saveSelectedCities = function() {
+    let selectedCities = JSON.stringify(app.selectedCities);
+    return app.db.setItem('selectedCities', selectedCities);
+  }
 
   app.getIconClass = function(weatherCode) {
     // Weather codes: https://developer.yahoo.com/weather/documentation.html#codes
@@ -305,9 +324,40 @@
     }
   };
   // TODO uncomment line below to test app with fake data
-  app.updateForecastCard(initialWeatherForecast);
+  // app.updateForecastCard(initialWeatherForecast);
+  
+  app.debugInit = function(){
+    debug.db = app.db;
+  }
 
-  // TODO add startup code here
+  app.init = function(){
+    // localforage docs: https://localforage.github.io/localForage/
+    let db = app.db;
+    app.debugInit();
+    return db.ready()
+      .then(() => {
+        return db.getItem('selectedCities');
+      }).then((cities) => {
+        app.selectedCities = cities;
+        if(app.selectedCities){
+          debug.log("Reload");
+          app.selectedCities = JSON.parse(app.selectedCities);
+          app.selectedCities.forEach(function(city){
+            app.getForecast(city.key, city.label);
+          });
+          return;
+        } else {
+          //first load, or no cities are saved
+          debug.log("First load");
+          app.updateForecastCard(initialWeatherForecast);
+          app.selectedCities = [
+            {key: initialWeatherForecast.key, label: initialWeatherForecast.label}
+          ];
+          return app.saveSelectedCities();
+        }
+      });
+  };
+  app.init();
 
   // TODO add service worker code here
 })();
