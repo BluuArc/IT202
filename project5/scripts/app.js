@@ -18,7 +18,7 @@ var debug = {
   isDebug: true,
   log: function(){
     if(this.isDebug){
-      console.log(...arguments);
+      console.log('[DEBUG]',...arguments);
     }
   }
 };
@@ -360,4 +360,12 @@ var debug = {
   app.init();
 
   // TODO add service worker code here
+  function addServiceWorker() {
+    if('serviceWorker' in navigator){
+      navigator.serviceWorker
+        .register('./service-worker.js')
+        .then(() => console.log('Service Worker registered'));
+    }
+  }
+  addServiceWorker();
 })();
