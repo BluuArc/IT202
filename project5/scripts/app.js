@@ -24,7 +24,7 @@ var debug = {
 };
 
 (function() {
-  /* global localforage */
+  /* global localforage navigator */
   'use strict';
 
   var app = {
