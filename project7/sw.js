@@ -18,7 +18,7 @@
  */
 
 // Version 0.6.2
-let version = '0.6.2.1';
+let version = '0.6.2.3';
 
 self.addEventListener('install', e => {
   let timeStamp = Date.now();
@@ -31,7 +31,8 @@ self.addEventListener('install', e => {
         `./scripts/main.min.js?timestamp=${timeStamp}`,
         `./scripts/comlink.global.js?timestamp=${timeStamp}`,
         `./scripts/messagechanneladapter.global.js?timestamp=${timeStamp}`,
-        `./sounds/airhorn.mp3?timestamp=${timeStamp}`
+        `./sounds/airhorn.mp3?timestamp=${timeStamp}`,
+        `./sounds/wilhelm.mp3?timestamp=${timeStamp}`
       ])
       .then(() => self.skipWaiting());
     })
