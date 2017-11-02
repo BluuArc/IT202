@@ -18,12 +18,17 @@
  */
 
 // Version 0.6.2
-let version = '0.6.2.3';
+let version = '0.6.2.5';
+let cacheName = 'airhorner_' + version;
+
+var sw = {
+    log: function(...args){ console.log('[ServiceWorker]',...args); }
+};
 
 self.addEventListener('install', e => {
   let timeStamp = Date.now();
   e.waitUntil(
-    caches.open('airhorner').then(cache => {
+    caches.open(cacheName).then(cache => {
       return cache.addAll([
         `./`,
         `./index.html?timestamp=${timeStamp}`,
@@ -39,12 +44,32 @@ self.addEventListener('install', e => {
   )
 });
 
-self.addEventListener('activate',  event => {
-  event.waitUntil(self.clients.claim());
+//clean up older cache, from project 5
+self.addEventListener('activate', function(e){
+    sw.log('Activate');
+    e.waitUntil(
+        //update cache whenever any of the app shell files change
+        //increment/change cache name to make it work
+        caches.keys().then(function(keyList) {
+            return Promise.all(keyList.map((key) => {
+                if(key !== cacheName){
+                    sw.log('Removing old cache',key);
+                    return caches.delete(key);
+                }
+            }));
+        }).then(() => {
+            return self.clients.claim();      
+        })
+    );
 });
 
+
+// self.addEventListener('activate',  event => {
+//   event.waitUntil(self.clients.claim());
+// });
+
 self.addEventListener('fetch', event => {
-  console.log(event.request);
+  // console.log(event.request);
   event.respondWith(
     caches.match(event.request, {ignoreSearch:true}).then(response => {
       return response || fetch(event.request);
