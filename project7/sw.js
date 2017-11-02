@@ -18,7 +18,7 @@
  */
 
 // Version 0.6.2
-let version = '0.6.2.5';
+let version = '0.6.2.6';
 let cacheName = 'airhorner_' + version;
 
 var sw = {
@@ -48,12 +48,12 @@ self.addEventListener('install', e => {
 self.addEventListener('activate', function(e){
     sw.log('Activate');
     e.waitUntil(
-        //update cache whenever any of the app shell files change
+        //update old airhorner cache whenever any of the app shell files change
         //increment/change cache name to make it work
         caches.keys().then(function(keyList) {
             return Promise.all(keyList.map((key) => {
-                if(key !== cacheName){
-                    sw.log('Removing old cache',key);
+                if(key.indexOf('airhorner') > -1 && key !== cacheName){
+                    sw.log('Removing old airhorner cache',key);
                     return caches.delete(key);
                 }
             }));
