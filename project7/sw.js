@@ -18,8 +18,10 @@
  */
 
 // Version 0.6.2
-let version = '0.6.2.7';
+let version = '0.6.2.8';
 let cacheName = 'airhorner_' + version;
+
+importScripts('./scripts/cache-polyfill.js');
 
 var sw = {
     log: function(...args){ console.log('[ServiceWorker]',...args); }
@@ -30,14 +32,21 @@ self.addEventListener('install', e => {
   e.waitUntil(
     caches.open(cacheName).then(cache => {
       return cache.addAll([
-        `./`,
-        `./index.html?timestamp=${timeStamp}`,
-        `./styles/main.css?timestamp=${timeStamp}`,
-        `./scripts/main.min.js?timestamp=${timeStamp}`,
-        `./scripts/comlink.global.js?timestamp=${timeStamp}`,
-        `./scripts/messagechanneladapter.global.js?timestamp=${timeStamp}`,
-        `./sounds/airhorn.mp3?timestamp=${timeStamp}`,
+        // `./`,
+        // `./index.html?timestamp=${timeStamp}`,
+        // `./styles/main.css?timestamp=${timeStamp}`,
+        // `./scripts/main.min.js?timestamp=${timeStamp}`,
+        // `./scripts/comlink.global.js?timestamp=${timeStamp}`,
+        // `./scripts/messagechanneladapter.global.js?timestamp=${timeStamp}`,
+        // `./sounds/airhorn.mp3?timestamp=${timeStamp}`,
         // `./sounds/wilhelm.mp3?timestamp=${timeStamp}`
+        './',
+        './index.html',
+        './index.html?homescreen=1',
+        './?homescreen=1',
+        './styles/main.css',
+        './scripts/main.min.js',
+        './sounds/airhorn.mp3'
       ])
       .then(() => self.skipWaiting());
     })
