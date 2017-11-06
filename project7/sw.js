@@ -18,7 +18,7 @@
  */
 
 // Version 0.6.2
-let version = '0.6.2.6';
+let version = '0.6.2.7';
 let cacheName = 'airhorner_' + version;
 
 var sw = {
@@ -37,7 +37,7 @@ self.addEventListener('install', e => {
         `./scripts/comlink.global.js?timestamp=${timeStamp}`,
         `./scripts/messagechanneladapter.global.js?timestamp=${timeStamp}`,
         `./sounds/airhorn.mp3?timestamp=${timeStamp}`,
-        `./sounds/wilhelm.mp3?timestamp=${timeStamp}`
+        // `./sounds/wilhelm.mp3?timestamp=${timeStamp}`
       ])
       .then(() => self.skipWaiting());
     })
