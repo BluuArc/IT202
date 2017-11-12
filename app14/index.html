@@ -1,0 +1,74 @@
+<!-- Initially from https://developers.google.com/maps/documentation/javascript/adding-a-google-map -->
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+       #map {
+        height: 400px;
+        width: 100%;
+       }
+    </style>
+  </head>
+  <body>
+    <h3>My Google Maps Demo</h3>
+    <div id="map"></div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA4cvNVl4Z-P_JzuNHkQ6ajnBuRQJqdmes"></script>
+    <script>
+        let map, marker;
+        
+        function getCurrentLocation() {
+            return new Promise((fulfill,reject) => {
+                if (!navigator.geolocation){
+                    alert("Geolocation is not supported by your browser");
+                    reject("Geolocation is not supported by your browser");
+                }
+                navigator.geolocation.getCurrentPosition(fulfill, reject);
+            });
+        }
+        
+        // from https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/Using_geolocation
+        function showCurrentLocation(){
+            return getCurrentLocation()
+                .then((data) => { //show marker
+                    //hide previous marker
+                    if(marker){
+                        // from https://developers.google.com/maps/documentation/javascript/markers
+                        marker.setMap(null);
+                    }
+                    
+                    let coords = {
+                        lat: data.coords.latitude,
+                        lng: data.coords.longitude
+                    }
+                    
+                    marker = new google.maps.Marker({
+                      position: coords,
+                      map: map
+                    });
+                    
+                    map.setCenter(coords);
+                    
+                    return;
+                }).catch((err) => {
+                    console.error((err));
+                })
+        }
+        
+        function initMap() {
+            map = new google.maps.Map(document.getElementById('map'), {
+              zoom: 15,
+            });
+        }
+        
+        $(document).ready(() => {
+            initMap();
+            showCurrentLocation()
+                .then(() => {
+                    console.log("Showing current location");
+                })
+        })
+    </script>
+  </body>
+</html>
