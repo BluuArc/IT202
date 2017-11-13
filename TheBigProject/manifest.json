@@ -1,0 +1,23 @@
+{
+  "name": "Waypoint Maker",
+  "short_name": "Waypoint Maker",
+  "icons": [{
+        "src": "assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_128.png",
+        "type": "image/png",
+        "sizes": "128x128"
+      }, {
+        "src": "assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_256.png",
+        "type": "image/png",
+        "sizes": "256x256"
+      }, {
+        "src": "assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_512.png",
+        "type": "image/png",
+        "sizes": "512x512"
+      }],
+  "icon_src": "https://material.io/icons/#ic_location_on",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#FFF",
+  "theme_color": "#3f51b5"
+}
