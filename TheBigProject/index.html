@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html class="mdc-typography">
+
+<head>
+  <title>Material Components for the web</title>
+  <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css">
+
+  <!-- CSS from https://material-components-web.appspot.com/toolbar/index.html -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  
+  <!-- referenced: https://material-components-web.appspot.com/drawer/persistent-drawer.html  -->
+  <style>
+      /* Ensure layout covers the entire screen. */
+      html {
+        height: 100%;
+      }
+
+      /* Place drawer and content side by side. */
+      body {
+        display: flex;
+        flex-direction: row;
+        padding: 0;
+        margin: 0;
+        box-sizing: border-box;
+        height: 100%;
+        width: 100%;
+      }
+
+      /* Stack toolbar and main on top of each other. */
+      .content {
+        display: inline-flex;
+        flex-direction: column;
+        flex-grow: 1;
+        height: 100%;
+        box-sizing: border-box;
+      }
+
+      .demo-main {
+        padding-left: 16px;
+      }
+    </style>
+</head>
+
+<body>
+  <aside class="mdc-persistent-drawer mdc-typography">
+    <nav class="mdc-persistent-drawer__drawer">
+      <header class="mdc-persistent-drawer__header">
+        <div class="mdc-persistent-drawer__header-content">
+          Header here
+        </div>
+      </header>
+      <nav id="icon-with-text-demo" class="mdc-persistent-drawer__content mdc-list">
+        <a class="mdc-list-item mdc-persistent-drawer--selected" href="#">
+          <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">inbox</i>Inbox
+        </a>
+        <a class="mdc-list-item" href="#">
+          <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">star</i>Star
+        </a>
+      </nav>
+    </nav>
+  </aside>
+  <div class="content">
+    <header class="mdc-toolbar">
+      <div class="mdc-toolbar__row">
+        <section class="mdc-toolbar__section mdc-toolbar__section--align-start">
+          <a href="#" class="material-icons mdc-toolbar__menu-icon menu">menu</a>
+          <span class="mdc-toolbar__title">Title</span>
+        </section>
+      </div>
+    </header>
+    <h2 class="mdc-typography--display2">Hello, Material Components!</h2>
+    <div class="mdc-textfield" data-mdc-auto-init="MDCTextfield">
+      <input type="text" class="mdc-textfield__input" id="demo-input">
+      <label for="demo-input" class="mdc-textfield__label">Tell us how you feel!</label>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+  <script>
+    mdc.autoInit();
+    mdc.toolbar.MDCToolbar.attachTo(document.querySelector('.mdc-toolbar'));
+    let drawer = new mdc.drawer.MDCPersistentDrawer(document.querySelector('.mdc-persistent-drawer'));
+    document.querySelector('.menu').addEventListener('click', () => drawer.open = !drawer.open);
+  </script>
+</body>
+
+</html>
