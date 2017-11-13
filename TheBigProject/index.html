@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html class="mdc-typography">
-
+<!-- Initially based off of sample from https://material.io/components/web/  -->
 <head>
   <title>Material Components for the web</title>
   <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css">
@@ -35,8 +35,8 @@
         box-sizing: border-box;
       }
 
-      .demo-main {
-        padding-left: 16px;
+      .hidden {
+        display: none;
       }
     </style>
 </head>
@@ -46,15 +46,19 @@
     <nav class="mdc-persistent-drawer__drawer">
       <header class="mdc-persistent-drawer__header">
         <div class="mdc-persistent-drawer__header-content">
-          Header here
+          The Big Project - IT202<br>by Joshua Castor
         </div>
       </header>
-      <nav id="icon-with-text-demo" class="mdc-persistent-drawer__content mdc-list">
-        <a class="mdc-list-item mdc-persistent-drawer--selected" href="#">
-          <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">inbox</i>Inbox
+      <!-- icon reference: https://material.io/icons/-->
+      <nav class="mdc-persistent-drawer__content mdc-list">
+        <a class="mdc-list-item mdc-persistent-drawer--selected" href="#" id="generalPage">
+          <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">info</i>General
         </a>
-        <a class="mdc-list-item" href="#">
-          <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">star</i>Star
+        <a class="mdc-list-item" href="#" id="mapPage">
+          <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">map</i>Map
+        </a>
+        <a class="mdc-list-item" href="#" id="markerListPage">
+          <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">location_on</i>Marker List
         </a>
       </nav>
     </nav>
@@ -64,23 +68,33 @@
       <div class="mdc-toolbar__row">
         <section class="mdc-toolbar__section mdc-toolbar__section--align-start">
           <a href="#" class="material-icons mdc-toolbar__menu-icon menu">menu</a>
-          <span class="mdc-toolbar__title">Title</span>
+          <span class="mdc-toolbar__title" id="navbarTitle">General</span>
         </section>
       </div>
     </header>
-    <h2 class="mdc-typography--display2">Hello, Material Components!</h2>
-    <div class="mdc-textfield" data-mdc-auto-init="MDCTextfield">
-      <input type="text" class="mdc-textfield__input" id="demo-input">
-      <label for="demo-input" class="mdc-textfield__label">Tell us how you feel!</label>
+    <div class="page" id="generalPage">
+      <h2 class="mdc-typography--display2">This is the general screen</h2>  
+    </div>
+    <div class="page hidden" id="mapPage">
+      <h2 class="mdc-typography--display2">This is the map screen</h2>  
+    </div>
+    <div class="page hidden" id="markerListPage">
+      <h2 class="mdc-typography--display2">The list of markers will be shown here</h2>  
     </div>
   </div>
 
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
   <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
-  <script>
-    mdc.autoInit();
-    mdc.toolbar.MDCToolbar.attachTo(document.querySelector('.mdc-toolbar'));
-    let drawer = new mdc.drawer.MDCPersistentDrawer(document.querySelector('.mdc-persistent-drawer'));
-    document.querySelector('.menu').addEventListener('click', () => drawer.open = !drawer.open);
+  <script src="app.js"></script>
+  <script type="text/javascript">
+    let app;
+    
+    $(document).ready(function() {
+      app = new App();
+      app.init();
+    });
+    
+    
   </script>
 </body>
 
