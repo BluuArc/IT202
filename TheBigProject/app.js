@@ -119,7 +119,10 @@ var App = function(options){
         });
         
         
-        return showCurrentLocation(self.pages["#mapPage"]);
+        return showCurrentLocation(self.pages["#mapPage"])
+            .then(() => {
+                setPageTo("#generalPage");
+            });
     }
     
     
