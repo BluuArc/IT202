@@ -19,7 +19,7 @@
  
 // Initially from project 7
 
-let version = '0.0.1';
+let version = '0.0.08';
 let appName = 'TheBigProject';
 let appCacheName = `${appName}_${version}`;
 
@@ -29,6 +29,7 @@ const appShellFiles = [
   './app.js',
   './assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_32.ico',
   './assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_128.png',
+  './assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_144.png',
   './assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_256.png',
   './assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_512.png',
   'https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css',

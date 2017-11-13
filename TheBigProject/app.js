@@ -127,7 +127,7 @@ var App = function(options){
             
             navigator.serviceWorker.ready.then(function(registration) {
                 console.log('Service Worker Ready');
-                });
+            });
         }
         
         

@@ -6,6 +6,18 @@
         "type": "image/png",
         "sizes": "128x128"
       }, {
+        "src": "assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_144.png",
+        "type": "image/png",
+        "sizes": "144x144"
+      }, {
+        "src": "assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_152.png",
+        "type": "image/png",
+        "sizes": "152x152"
+      }, {
+        "src": "assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_192.png",
+        "type": "image/png",
+        "sizes": "192x192"
+      }, {
         "src": "assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_256.png",
         "type": "image/png",
         "sizes": "256x256"
@@ -15,8 +27,7 @@
         "sizes": "512x512"
       }],
   "icon_src": "https://material.io/icons/#ic_location_on",
-  "start_url": "/index.html",
-  "scope": "/",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#FFFFFF",
   "theme_color": "#3F51B5"
