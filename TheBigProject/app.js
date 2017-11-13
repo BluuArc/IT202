@@ -1,4 +1,5 @@
-
+'use strict';
+/* global mdc $ */
 var App = function(options){
     let self = {
         pages: {
