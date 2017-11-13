@@ -4,12 +4,15 @@ var App = function(options){
         pages: {
             "#generalPage": {
                 name: "General",
+                drawer: true //check to see if it's a drawer link
             },
             "#mapPage": {
-                name: "Map"
+                name: "Map",
+                drawer: true
             },
             "#markerListPage": {
-                name: "Marker List"
+                name: "Marker List",
+                drawer: true
             }
         },
         navbar: {
@@ -19,12 +22,27 @@ var App = function(options){
     
     function setPageTo(pageId) {
         let delay = 125;
-        $(".page").fadeOut(delay);
+        let pages = $(".page");
+        
+        pages.each(function(){
+            let curElem = $(this);
+            let id = "#" + curElem.attr("id");
+            curElem.fadeOut(delay);
+            if(self.pages[id] && self.pages[id].drawer){
+                $("a" + id).removeClass("mdc-persistent-drawer--selected");
+            }
+        });
+        
         self.navbar.title.fadeOut(delay);
         
         setTimeout(() => {
+            let page = $(".page" + pageId);
             self.navbar.title.text(self.pages[pageId].name);
-            $(".page" + pageId).fadeIn(delay);
+            
+            if(self.pages[pageId].drawer){
+                $("a" + pageId).addClass("mdc-persistent-drawer--selected");
+            }
+            page.fadeIn(delay);
             self.navbar.title.fadeIn(delay);
         },delay);
         
