@@ -133,7 +133,7 @@ var App = function(options){
         
         return showCurrentLocation(self.pages["#mapPage"])
             .then(() => {
-                setPageTo("#generalPage");
+                setTimeout(() => setPageTo("#generalPage"), 150); //delayed change
             });
     }
     
