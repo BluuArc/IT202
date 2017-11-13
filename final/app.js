@@ -20,7 +20,8 @@ var App = function(options){
         },
         navbar: {
             title: undefined
-        }
+        },
+        drawer: undefined
     }
     
     function setPageTo(pageId) {
@@ -32,7 +33,7 @@ var App = function(options){
             let id = "#" + curElem.attr("id");
             curElem.fadeOut(delay);
             if(self.pages[id] && self.pages[id].drawer){
-                $("a" + id).removeClass("mdc-persistent-drawer--selected");
+                $("a" + id).removeClass("mdc-temporary-drawer--selected");
             }
         });
         
@@ -43,7 +44,7 @@ var App = function(options){
             self.navbar.title.text(self.pages[pageId].name);
             
             if(self.pages[pageId].drawer){
-                $("a" + pageId).addClass("mdc-persistent-drawer--selected");
+                $("a" + pageId).addClass("mdc-temporary-drawer--selected");
             }
             page.fadeIn(delay);
             self.navbar.title.fadeIn(delay);
@@ -96,8 +97,8 @@ var App = function(options){
     function init() {
         mdc.autoInit();
         mdc.toolbar.MDCToolbar.attachTo(document.querySelector('.mdc-toolbar'));
-        let drawer = new mdc.drawer.MDCPersistentDrawer(document.querySelector('.mdc-persistent-drawer'));
-        document.querySelector('.menu').addEventListener('click', () => drawer.open = !drawer.open);
+        self.drawer = new mdc.drawer.MDCTemporaryDrawer(document.querySelector('.mdc-temporary-drawer'));
+        document.querySelector('.menu').addEventListener('click', () => self.drawer.open = !self.drawer.open);
         
         //intialize pages
         let pages = $(".pages");
@@ -110,6 +111,7 @@ var App = function(options){
             $("a" + d).on("click", function (e) {
                 e.preventDefault();
                 setPageTo(d);
+                self.drawer.open = false;
             });
         });
         
@@ -141,6 +143,7 @@ var App = function(options){
     
     
     return {
-        init
+        init,
+        setPageTo
     };
 }

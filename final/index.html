@@ -12,6 +12,9 @@
   <!-- CSS from https://material-components-web.appspot.com/toolbar/index.html -->
   <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
   
+  <!-- CSS from https://material.io/components/web/catalog/typography/ -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
+  
   <!--meta tags from project 5-->
   <!-- Add to home screen for Safari on iOS -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -68,34 +71,38 @@
       
       #mapPage #map {
         position: absolute;
+        left: 0;
         width: 100%;
         height: 100%;
+      }
+      
+      .content-container {
+        margin: 15px;
       }
     </style>
 </head>
 
 <body>
-  <aside class="mdc-persistent-drawer mdc-typography">
-    <nav class="mdc-persistent-drawer__drawer">
-      <header class="mdc-persistent-drawer__header">
-        <div class="mdc-persistent-drawer__header-content">
-          The Big Project - IT202<br>by Joshua Castor
-        </div>
-      </header>
-      <!-- icon reference: https://material.io/icons/-->
-      <nav class="mdc-persistent-drawer__content mdc-list mdc-typography">
+  <aside class="mdc-temporary-drawer mdc-typography">
+  <nav class="mdc-temporary-drawer__drawer">
+    <header class="mdc-temporary-drawer__header">
+      <div class="mdc-persistent-drawer__header-content">
+        The Big Project - IT202<br>by Joshua Castor
+      </div>
+    </header>
+    <nav class="mdc-temporary-drawer__content mdc-list mdc-typography">
         <a class="mdc-list-item mdc-typography--display3" href="#" id="generalPage">
           <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">info</i>General
         </a>
-        <a class="mdc-list-item mdc-typography--display3  mdc-persistent-drawer--selected" href="#" id="mapPage">
+        <a class="mdc-list-item mdc-typography--display3 mdc-temporary-drawer--selected" href="#" id="mapPage">
           <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">map</i>Map
         </a>
         <a class="mdc-list-item mdc-typography--display3" href="#" id="markerListPage">
           <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">location_on</i>Marker List
         </a>
       </nav>
-    </nav>
-  </aside>
+  </nav>
+</aside>
   <div class="content">
     <header class="mdc-toolbar" id="mainNavbar">
       <div class="mdc-toolbar__row">
@@ -106,7 +113,13 @@
       </div>
     </header>
     <div class="page hidden" id="generalPage">
-      <h2 class="mdc-typography--display2">This is the general screen</h2>  
+      <div class="content-container mdc-typography">
+        <h2 class="mdc-typography--display2">About</h2>
+        <p class="mdc-typography--body1">About text</p>
+        <a class="mdc-button" href="https://docs.google.com/document/d/17K52EtIM7A2S5ORIVUXEdGOVlVfjGoUlhJ6GG1Vq23Q/edit" target="_blank">Project Document</a>
+      </div>
+      
+      </div>
     </div>
     <div class="page" id="mapPage">
       <!--<h2 class="mdc-typography--display2">This is the map screen</h2>  -->
