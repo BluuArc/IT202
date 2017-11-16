@@ -79,6 +79,20 @@
       .content-container {
         margin: 15px;
       }
+      
+      /* from https://material.io/components/web/catalog/buttons/floating-action-buttons/ */
+      .app-fab--absolute {
+        position: fixed;
+        bottom: 1rem;
+        left: 1rem;
+      }
+      
+      @media(min-width: 1024px) {
+         .app-fab--absolute {
+          bottom: 1.5rem;
+          left: 1.5rem;
+        }
+      }
     </style>
 </head>
 
@@ -112,20 +126,29 @@
         </section>
       </div>
     </header>
-    <div class="page hidden" id="generalPage">
+    <div class="page" id="generalPage">
       <div class="content-container mdc-typography">
         <h2 class="mdc-typography--display2">About</h2>
         <p class="mdc-typography--body1">About text</p>
         <a class="mdc-button" href="https://docs.google.com/document/d/17K52EtIM7A2S5ORIVUXEdGOVlVfjGoUlhJ6GG1Vq23Q/edit" target="_blank">Project Document</a>
       </div>
-      
-      </div>
     </div>
+      
     <div class="page" id="mapPage">
       <!--<h2 class="mdc-typography--display2">This is the map screen</h2>  -->
       <div id="map"></div>
+      <button class="mdc-fab material-icons app-fab--absolute" aria-label="Add Marker" id="addLocationButton">
+        <span class="mdc-fab__icon">
+          add_location
+        </span>
+      </button>
     </div>
-    <div class="page hidden" id="markerListPage">
+    <div class="page" id="markerListPage">
+      <button class="mdc-fab material-icons app-fab--absolute" aria-label="Add Marker" id="addLocationButton">
+        <span class="mdc-fab__icon">
+          add_location
+        </span>
+      </button>
       <!-- grid reference: https://material.io/components/web/catalog/layout-grid/ -->
       <div class="mdc-layout-grid">
         <div class="mdc-layout-grid__inner">
@@ -147,6 +170,7 @@
           </div>
         </div>
       </div>
+    </div>
     </div>
   </div>
 
