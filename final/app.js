@@ -16,15 +16,25 @@ var App = function(options){
             "#markerListPage": {
                 name: "Marker List",
                 drawer: true
+            },
+            "#addMarkerPage": {
+                name: "Add Marker",
+                drawer: false,
+                map: undefined,
+                marker: undefined
             }
         },
         navbar: {
-            title: undefined
+            title: undefined,
+            menuButton: undefined
         },
-        drawer: undefined
+        drawer: undefined,
+        prev: undefined,
+        personal_markers: [],
+        transport_markers: []
     }
     
-    function setPageTo(pageId) {
+    function setPageTo(pageId, prevPage) {
         let delay = 125;
         let pages = $(".page");
         
@@ -43,9 +53,15 @@ var App = function(options){
             let page = $(".page" + pageId);
             self.navbar.title.text(self.pages[pageId].name);
             
+            //change highlighted icon in drawer
             if(self.pages[pageId].drawer){
                 $("a" + pageId).addClass("mdc-temporary-drawer--selected");
             }
+            
+            //change menu button to back button
+            self.prev = prevPage;
+            self.navbar.menuButton.text(self.prev ? "arrow_back" : "menu");
+            
             page.fadeIn(delay);
             self.navbar.title.fadeIn(delay);
         },delay);
@@ -63,42 +79,50 @@ var App = function(options){
             navigator.geolocation.getCurrentPosition(fulfill, reject);
         });
     }
-        
-        // from https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/Using_geolocation
-        function showCurrentLocation(mapData){
-            return getCurrentLocation()
-                .then((data) => { //show marker
-                    //hide previous marker
-                    if(mapData.currentLocationMarker){
-                        // from https://developers.google.com/maps/documentation/javascript/markers
-                        mapData.currentLocationMarker.setMap(null);
-                    }
-                    
-                    
-                    let coords = {
-                        lat: data.coords.latitude,
-                        lng: data.coords.longitude
-                    }
-                    
-                    mapData.currentLocationMarker = new google.maps.Marker({
-                      position: coords,
-                      map: mapData.map
-                    });
-                    
-                    mapData.map.setCenter(coords);
-                    
-                    return;
-                }).catch((err) => {
-                    console.error((err));
-                })
-        }
     
+    // from https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/Using_geolocation
+    function showCurrentLocation(mapData){
+        return getCurrentLocation()
+            .then((data) => { //show marker
+                //hide previous marker
+                if(mapData.currentLocationMarker){
+                    // from https://developers.google.com/maps/documentation/javascript/markers
+                    mapData.currentLocationMarker.setMap(null);
+                }
+                
+                
+                let coords = {
+                    lat: data.coords.latitude,
+                    lng: data.coords.longitude
+                }
+                
+                mapData.currentLocationMarker = new google.maps.Marker({
+                  position: coords,
+                  map: mapData.map
+                });
+                
+                mapData.map.setCenter(coords);
+                
+                return;
+            }).catch((err) => {
+                console.error((err));
+            })
+    }
+
     
     function init() {
         mdc.autoInit();
         mdc.toolbar.MDCToolbar.attachTo(document.querySelector('.mdc-toolbar'));
         self.drawer = new mdc.drawer.MDCTemporaryDrawer(document.querySelector('.mdc-temporary-drawer'));
-        document.querySelector('.menu').addEventListener('click', () => self.drawer.open = !self.drawer.open);
+        self.navbar.menuButton = $("#mainNavbar .menu");
+        self.navbar.menuButton.on("click",function(e) {
+            if(self.prev){
+                setPageTo(self.prev);
+            }else{
+                self.drawer.open = !self.drawer.open;
+            }
+        })
+        // document.querySelector('.menu').addEventListener('click', () => self.drawer.open = !self.drawer.open);
         
         //intialize pages
         let pages = $(".pages");

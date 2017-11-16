@@ -115,8 +115,8 @@
           <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">location_on</i>Marker List
         </a>
       </nav>
-  </nav>
-</aside>
+    </nav>
+  </aside>
   <div class="content">
     <header class="mdc-toolbar" id="mainNavbar">
       <div class="mdc-toolbar__row">
@@ -137,14 +137,14 @@
     <div class="page" id="mapPage">
       <!--<h2 class="mdc-typography--display2">This is the map screen</h2>  -->
       <div id="map"></div>
-      <button class="mdc-fab material-icons app-fab--absolute" aria-label="Add Marker" id="addLocationButton">
+      <button class="mdc-fab material-icons app-fab--absolute" aria-label="Add Marker" id="addLocationButton" onclick="app.setPageTo('#addMarkerPage','#mapPage')">
         <span class="mdc-fab__icon">
           add_location
         </span>
       </button>
     </div>
     <div class="page" id="markerListPage">
-      <button class="mdc-fab material-icons app-fab--absolute" aria-label="Add Marker" id="addLocationButton">
+      <button class="mdc-fab material-icons app-fab--absolute" aria-label="Add Marker" id="addLocationButton" onclick="app.setPageTo('#addMarkerPage','#markerListPage')">
         <span class="mdc-fab__icon">
           add_location
         </span>
@@ -171,6 +171,8 @@
         </div>
       </div>
     </div>
+    <div class="page" id="addMarkerPage">
+      <h2>This is the add marker page</h2>
     </div>
   </div>
 
