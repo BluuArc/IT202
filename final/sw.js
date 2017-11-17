@@ -19,7 +19,7 @@
  
 // Initially from project 7
 
-let version = '0.0.023';
+let version = '0.0.024x';
 let appName = 'TheBigProject';
 let appCacheName = `${appName}_${version}`;
 
@@ -57,6 +57,7 @@ self.addEventListener('install', e => {
 //clean up older cache, from project 5
 self.addEventListener('activate', function(e){
     sw.log('Activate');
+    let hasUpdate = false;
     e.waitUntil(
         //update old cache whenever any of the app shell files change
         //increment/change cache name to make it work
@@ -64,11 +65,12 @@ self.addEventListener('activate', function(e){
             return Promise.all(keyList.map((key) => {
                 if(key.indexOf(appName) > -1 && key !== appCacheName){
                     sw.log('Removing old cache',key);
+                    hasUpdate = true;
                     return caches.delete(key);
                 }
             }));
         }).then(() => {
-            return self.clients.claim();      
+          return self.clients.claim();      
         })
     );
 });

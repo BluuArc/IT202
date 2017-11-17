@@ -80,6 +80,15 @@
         margin: 15px;
       }
       
+      #addMarkerPage .mdc-card {
+        box-shadow: none;
+      }
+      
+      #addMarkerPage .mdc-card__actions {
+        position: absolute;
+        bottom: 0;
+      }
+      
       /* from https://material.io/components/web/catalog/buttons/floating-action-buttons/ */
       .app-fab--absolute {
         position: fixed;
@@ -137,14 +146,14 @@
     <div class="page" id="mapPage">
       <!--<h2 class="mdc-typography--display2">This is the map screen</h2>  -->
       <div id="map"></div>
-      <button class="mdc-fab material-icons app-fab--absolute" aria-label="Add Marker" id="addLocationButton" onclick="app.setPageTo('#addMarkerPage','#mapPage')">
+      <button class="mdc-fab material-icons app-fab--absolute" aria-label="Add Marker" id="addLocationButton">
         <span class="mdc-fab__icon">
           add_location
         </span>
       </button>
     </div>
     <div class="page" id="markerListPage">
-      <button class="mdc-fab material-icons app-fab--absolute" aria-label="Add Marker" id="addLocationButton" onclick="app.setPageTo('#addMarkerPage','#markerListPage')">
+      <button class="mdc-fab material-icons app-fab--absolute" aria-label="Add Marker" id="addLocationButton">
         <span class="mdc-fab__icon">
           add_location
         </span>
@@ -172,7 +181,20 @@
       </div>
     </div>
     <div class="page" id="addMarkerPage">
-      <h2>This is the add marker page</h2>
+      <!-- reference: https://material.io/components/web/catalog/cards/-->
+      <div class="mdc-card">
+        <section class="mdc-card__media" id="newMarkerMap"></section>
+        <section class="mdc-card__primary">
+          <h1 class="mdc-card__title mdc-card__title--large">Marker Options</h1>
+        </section>
+        <section class="mdc-card__supporting-text">
+          Form for adding a new marker would go here
+        </section>
+        <section class="mdc-card__actions">
+          <button class="mdc-button mdc-button--compact mdc-card__action">Save</button>
+          <button class="mdc-button mdc-button--compact mdc-card__action">Cancel</button>
+        </section>
+      </div>
     </div>
   </div>
 

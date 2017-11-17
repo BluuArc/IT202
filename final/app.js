@@ -21,7 +21,7 @@ var App = function(options){
                 name: "Add Marker",
                 drawer: false,
                 map: undefined,
-                marker: undefined
+                currentLocationMarker: undefined
             }
         },
         navbar: {
@@ -49,22 +49,28 @@ var App = function(options){
         
         self.navbar.title.fadeOut(delay);
         
-        setTimeout(() => {
-            let page = $(".page" + pageId);
-            self.navbar.title.text(self.pages[pageId].name);
-            
-            //change highlighted icon in drawer
-            if(self.pages[pageId].drawer){
-                $("a" + pageId).addClass("mdc-temporary-drawer--selected");
-            }
-            
-            //change menu button to back button
-            self.prev = prevPage;
-            self.navbar.menuButton.text(self.prev ? "arrow_back" : "menu");
-            
-            page.fadeIn(delay);
-            self.navbar.title.fadeIn(delay);
-        },delay);
+        return new Promise((fulfill, reject) => {
+            setTimeout(() => {
+                let page = $(".page" + pageId);
+                self.navbar.title.text(self.pages[pageId].name);
+                
+                //change highlighted icon in drawer
+                if(self.pages[pageId].drawer){
+                    $("a" + pageId).addClass("mdc-temporary-drawer--selected");
+                }
+                
+                //change menu button to back button
+                self.prev = prevPage;
+                self.navbar.menuButton.text(self.prev ? "arrow_back" : "menu");
+                
+                page.fadeIn(delay);
+                self.navbar.title.fadeIn(delay,() => {
+                    fulfill();
+                });
+                
+            },delay);    
+        })
+        
         
         
     }
@@ -108,6 +114,62 @@ var App = function(options){
                 console.error((err));
             })
     }
+    
+    function initializePages(argument) {
+        // all pages
+        let pages = $(".pages");
+        
+        pages.css("padding-top", $("#mainNavbar").height()*1.1);
+        $("#mapPage #map").css("height", $("body").height() - $("#mainNavbar").height())
+            .css("margin-top", '14px');
+            
+        $("#addMarkerPage #newMarkerMap").css("height", $(".content").height()*0.95 - $("#addMarkerPage").height() - $("#addMarkerPage .mdc-card__actions").height())
+            // .css("margin-top", '14px');
+        
+        $.each(Object.keys(self.pages), function(i,d) {
+            $("a" + d).on("click", function (e) {
+                e.preventDefault();
+                setPageTo(d);
+                self.drawer.open = false;
+            });
+        });
+        
+        // page specific inits
+        // initialize map page
+        self.pages["#mapPage"].map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 15,
+        });
+        
+        //conditionally initialize map
+        ["#mapPage", "#markerListPage"].forEach(function(d,i){
+            $(`.page${d}`).find("#addLocationButton").on("click", function(e){
+                setPageTo("#addMarkerPage",d).then(() => {
+                    let page_data = self.pages["#addMarkerPage"];
+                    if(!page_data.map){
+                        page_data.map = new google.maps.Map($("#addMarkerPage #newMarkerMap").get(0), {
+                          zoom: 15,
+                        });
+                    }
+                    
+                    let locationPromise;
+                    if(!page_data.currentLocationMarker){
+                        locationPromise = showCurrentLocation(page_data);
+                    }else{
+                        locationPromise = getCurrentLocation()
+                            .then((data) => {
+                                let coords = {
+                                    lat: data.coords.latitude,
+                                    lng: data.coords.longitude
+                                };
+                                
+                                page_data.currentLocationMarker.setPosition(coords);
+                                return;
+                            })
+                    }
+                })
+            })
+        })
+    }
 
     
     function init() {
@@ -124,25 +186,11 @@ var App = function(options){
         })
         // document.querySelector('.menu').addEventListener('click', () => self.drawer.open = !self.drawer.open);
         
-        //intialize pages
-        let pages = $(".pages");
-        
-        pages.css("padding-top", $("#mainNavbar").height()*1.1);
-        $("#mapPage #map").css("height", $("body").height() - $("#mainNavbar").height())
-            .css("margin-top", '14px');
         self.navbar.title = $(".mdc-toolbar__title#navbarTitle");
-        $.each(Object.keys(self.pages), function(i,d) {
-            $("a" + d).on("click", function (e) {
-                e.preventDefault();
-                setPageTo(d);
-                self.drawer.open = false;
-            });
-        });
+        //intialize pages
+        initializePages();
         
-        // initialize map
-        self.pages["#mapPage"].map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 15,
-        });
+        
         
         //initialize service worker
         if('serviceWorker' in navigator) {
