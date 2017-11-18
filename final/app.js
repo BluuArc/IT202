@@ -30,8 +30,24 @@ var App = function(options){
         },
         drawer: undefined,
         prev: undefined,
+        snackbar: undefined,
         personal_markers: [],
         transport_markers: []
+    }
+    
+    function notify(options = {}) {
+        if(!self.snackbar){
+            throw "Snackbar not initialized";
+        }
+        
+        let notifData = {
+            message: options.message,
+            actionText: options.actionText,
+            actionHandler: options.actionHandler,
+            timeout: options.timeout || 5000
+        };
+        
+        self.snackbar.show(notifData);
     }
     
     function setPageTo(pageId, prevPage) {
@@ -170,6 +186,39 @@ var App = function(options){
             })
         })
     }
+    
+    function initializeServiceWorker() {
+        if('serviceWorker' in navigator) {
+            // SW messaging referenced from http://craig-russell.co.uk/2016/01/29/service-worker-messaging.html
+            navigator.serviceWorker.addEventListener('message',function (event) {
+                let data = event.data;
+                console.log("SW to Client:",event);
+                if(data.hasUpdate){
+                    notify({
+                        message: "Reload to update application",
+                        actionText: "Reload",
+                        actionHandler: () => location.reload()
+                    });
+                }
+                if(data.version){
+                    $("#appVersion").text(data.version);
+                }
+            });
+            
+            navigator.serviceWorker.register('sw.js')
+                .then(function(registration) {
+                    console.log('Service Worker Registered');
+                });
+            
+            navigator.serviceWorker.ready.then(function(registration) {
+                console.log('Service Worker Ready');
+                
+                //request for version
+                let channel = new MessageChannel();
+                navigator.serviceWorker.controller.postMessage({version: true},[channel.port2]);
+            });
+        }
+    }
 
     
     function init() {
@@ -184,25 +233,17 @@ var App = function(options){
                 self.drawer.open = !self.drawer.open;
             }
         })
-        // document.querySelector('.menu').addEventListener('click', () => self.drawer.open = !self.drawer.open);
         
         self.navbar.title = $(".mdc-toolbar__title#navbarTitle");
-        //intialize pages
+        
+        // initialize snackbar
+        // reference: https://material.io/components/web/catalog/snackbars/
+        const MDCSnackbar = mdc.snackbar.MDCSnackbar;
+        const MDCSnackbarFoundation = mdc.snackbar.MDCSnackbarFoundation;
+        self.snackbar = new MDCSnackbar(document.querySelector('.mdc-snackbar'));
+        
         initializePages();
-        
-        
-        
-        //initialize service worker
-        if('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js')
-                .then(function(registration) {
-                    console.log('Service Worker Registered');
-                });
-            
-            navigator.serviceWorker.ready.then(function(registration) {
-                console.log('Service Worker Ready');
-            });
-        }
+        initializeServiceWorker();
         
         
         return showCurrentLocation(self.pages["#mapPage"])

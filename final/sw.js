@@ -19,9 +19,10 @@
  
 // Initially from project 7
 
-let version = '0.0.024x';
+let version = '0.001.10';
 let appName = 'TheBigProject';
 let appCacheName = `${appName}_${version}`;
+let activeClients = [];
 
 const appShellFiles = [
   './',
@@ -40,9 +41,41 @@ const appShellFiles = [
 
 importScripts('./scripts/cache-polyfill.js');
 
+// messaging code referenced from http://craig-russell.co.uk/2016/01/29/service-worker-messaging.html
 var sw = {
-    log: function(...args){ console.log('[ServiceWorker]',...args); }
+    log: function(...args){ console.log('[ServiceWorker]',...args); },
+    send: (client,msg) => {
+      return new Promise((fulfill,reject) => {
+        let channel = new MessageChannel();
+        
+        // channel.port1.onmessage = function(event){
+        //   event.data.error ? reject(event.data.error) : fulfill(event.data);
+        // };
+        
+        client.postMessage(msg,[channel.port2]);
+        fulfill();
+      });
+    },
+    sendAll: (msg) => {
+      sw.log("Broadcasting message",msg);
+      return clients.matchAll().then(clients => {
+        let sendPromises = [];
+        clients.forEach(client => {
+          sendPromises.push(sw.send(client,msg));
+        });
+        return Promise.all(sendPromises);
+      });
+    },
+    receive: (event) => { 
+      sw.log("Client to SW:", event); 
+      
+      if(event.data.version){
+        sw.sendAll({version});
+      }
+    }
 };
+
+self.addEventListener('message',sw.receive);
 
 self.addEventListener('install', e => {
   let timeStamp = Date.now();
@@ -53,6 +86,10 @@ self.addEventListener('install', e => {
     })
   )
 });
+
+self.addEventListener('ready', e => {
+  e.waitUntil(sw.sendAll({version}));
+})
 
 //clean up older cache, from project 5
 self.addEventListener('activate', function(e){
@@ -69,7 +106,8 @@ self.addEventListener('activate', function(e){
                     return caches.delete(key);
                 }
             }));
-        }).then(() => {
+        }).then(() => sw.sendAll({hasUpdate}))
+          .then(() => {
           return self.clients.claim();      
         })
     );
