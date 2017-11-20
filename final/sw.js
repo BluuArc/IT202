@@ -19,10 +19,9 @@
  
 // Initially from project 7
 
-let version = '0.001.10';
+let version = '0.002.001';
 let appName = 'TheBigProject';
 let appCacheName = `${appName}_${version}`;
-let activeClients = [];
 
 const appShellFiles = [
   './',
@@ -47,10 +46,6 @@ var sw = {
     send: (client,msg) => {
       return new Promise((fulfill,reject) => {
         let channel = new MessageChannel();
-        
-        // channel.port1.onmessage = function(event){
-        //   event.data.error ? reject(event.data.error) : fulfill(event.data);
-        // };
         
         client.postMessage(msg,[channel.port2]);
         fulfill();
@@ -93,7 +88,7 @@ self.addEventListener('ready', e => {
 
 //clean up older cache, from project 5
 self.addEventListener('activate', function(e){
-    sw.log('Activate');
+    sw.log('Activate', location);
     let hasUpdate = false;
     e.waitUntil(
         //update old cache whenever any of the app shell files change

@@ -1,6 +1,10 @@
 'use strict';
 /* global mdc $ */
 var App = function(options){
+    let debug = {
+        mode: location.hostname.indexOf("c9users.io") > -1 || location.hostname.indexOf("127.0.0.1") > -1,
+        log: function(...args){ if(this.mode) console.log('[App]',...args); }
+    };
     let self = {
         pages: {
             "#generalPage": {
@@ -33,6 +37,10 @@ var App = function(options){
         snackbar: undefined,
         personal_markers: [],
         transport_markers: []
+    }
+    
+    function debugLog(argument) {
+        // body...
     }
     
     function notify(options = {}) {
@@ -192,7 +200,7 @@ var App = function(options){
             // SW messaging referenced from http://craig-russell.co.uk/2016/01/29/service-worker-messaging.html
             navigator.serviceWorker.addEventListener('message',function (event) {
                 let data = event.data;
-                console.log("SW to Client:",event);
+                debug.log("SW to Client:",event);
                 if(data.hasUpdate){
                     notify({
                         message: "Reload to update application",
@@ -207,11 +215,11 @@ var App = function(options){
             
             navigator.serviceWorker.register('sw.js')
                 .then(function(registration) {
-                    console.log('Service Worker Registered');
+                    debug.log('Service Worker Registered');
                 });
             
             navigator.serviceWorker.ready.then(function(registration) {
-                console.log('Service Worker Ready');
+                debug.log('Service Worker Ready');
                 
                 //request for version
                 let channel = new MessageChannel();
