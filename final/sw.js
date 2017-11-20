@@ -19,7 +19,7 @@
  
 // Initially from project 7
 
-let version = '0.002.005';
+let version = '0.002.012';
 let appName = 'TheBigProject';
 let appCacheName = `${appName}_${version}`;
 
@@ -88,7 +88,7 @@ self.addEventListener('ready', e => {
 
 //clean up older cache, from project 5
 self.addEventListener('activate', function(e){
-    sw.log('Activate', location);
+    sw.log('Activate');
     let hasUpdate = false;
     e.waitUntil(
         //update old cache whenever any of the app shell files change

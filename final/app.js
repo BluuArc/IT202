@@ -97,9 +97,6 @@ var App = function(options){
                 
             },delay);    
         })
-        
-        
-        
     }
     
     //from app14
@@ -149,9 +146,6 @@ var App = function(options){
         pages.css("padding-top", $("#mainNavbar").height()*1.1);
         $("#mapPage #map").css("height", $("body").height() - $("#mainNavbar").height())
             .css("margin-top", '14px');
-            
-        $("#addMarkerPage #newMarkerMap").css("height", $(".content").height()*0.95 - $("#addMarkerPage").height() - $("#addMarkerPage .mdc-card__actions").height())
-            // .css("margin-top", '14px');
         
         $.each(Object.keys(self.pages), function(i,d) {
             $("a" + d).on("click", function (e) {
@@ -161,15 +155,27 @@ var App = function(options){
             });
         });
         
+        // initialize all text boxes
+        $(".mdc-text-field").each(function(){
+            mdc.textField.MDCTextField.attachTo(this);
+        });
+        
         // page specific inits
         // initialize map page
         self.pages["#mapPage"].map = new google.maps.Map(document.getElementById('map'), {
           zoom: 15,
         });
         
+        let markerPage = $(".page#addMarkerPage");
+        markerPage.find("button#cancel").on("click", (e) => {
+            e.preventDefault();
+            setPageTo(self.prev);
+        });
+        
         //conditionally initialize map
         ["#mapPage", "#markerListPage"].forEach(function(d,i){
             $(`.page${d}`).find("#addLocationButton").on("click", function(e){
+                
                 setPageTo("#addMarkerPage",d).then(() => {
                     let page_data = self.pages["#addMarkerPage"];
                     if(!page_data.map){
@@ -191,11 +197,25 @@ var App = function(options){
                                 
                                 page_data.currentLocationMarker.setPosition(coords);
                                 return;
-                            })
+                            });
                     }
-                })
-            })
-        })
+                });
+            });
+        });
+        
+        $("#addMarkerPage #newMarkerMap").css("height", $(".content").height()*0.95 - $("#addMarkerPage").height() - $("#addMarkerPage .mdc-card__actions").height())
+        
+    }
+    
+    function addMarker(options = {}){
+        debug.log("Adding marker", options);
+        const fields = ['id', 'name','coords','notes'];
+        let isInvalid = fields.reduce((acc,curr) => acc || curr[fields] === undefined,false);
+        if(isInvalid){
+            throw "Invalid marker data";
+        }else{
+            debug.log("Marker data is valid");
+        }
     }
     
     function initializeServiceWorker() {
@@ -238,6 +258,7 @@ var App = function(options){
         mdc.toolbar.MDCToolbar.attachTo(document.querySelector('.mdc-toolbar'));
         self.drawer = new mdc.drawer.MDCTemporaryDrawer(document.querySelector('.mdc-temporary-drawer'));
         self.navbar.menuButton = $("#mainNavbar .menu");
+        
         self.navbar.menuButton.on("click",function(e) {
             if(self.prev){
                 setPageTo(self.prev);
