@@ -101,6 +101,10 @@
         text-align: center!important;
       }
       
+      #markerTemplate {
+        display: none;
+      }
+      
       @media(min-width: 1024px) {
          .app-fab--absolute {
           bottom: 1.5rem;
@@ -179,20 +183,20 @@
       </button>
       <!-- grid reference: https://material.io/components/web/catalog/layout-grid/ -->
       <div class="mdc-layout-grid">
-        <div class="mdc-layout-grid__inner">
-          <div class="mdc-layout-grid__cell--span-12">
+        <div class="mdc-layout-grid__inner" id="card-list">
+          <div class="mdc-layout-grid__cell--span-12" id="markerTemplate">
             <!-- card reference: https://material.io/components/web/catalog/cards/ -->
-            <div class="mdc-card" id="markerTemplate">
+            <div class="mdc-card">
               <section class="mdc-card__primary">
-                <h1 class="mdc-card__title mdc-card__title--large">Marker Title (Template)</h1>
-                <h2 class="mdc-card__subtitle">Marker Location (Latitude, Longitude)</h2>
+                <h1 class="mdc-card__title mdc-card__title--large" id="marker-name">Marker Title (Template)</h1>
+                <h2 class="mdc-card__subtitle" id="marker-location">Marker Location (Latitude, Longitude)</h2>
               </section>
-              <section class="mdc-card__supporting-text">
+              <section class="mdc-card__supporting-text" id="marker-notes">
                 Notes, if any.
               </section>
               <section class="mdc-card__actions">
-                <button class="mdc-button mdc-button--compact mdc-card__action">Edit</button>
-                <button class="mdc-button mdc-button--compact mdc-card__action">Remove</button>
+                <button class="mdc-button mdc-button--compact mdc-card__action" id="edit">Edit</button>
+                <button class="mdc-button mdc-button--compact mdc-card__action" id="remove">Remove</button>
               </section>
             </div>
           </div>
@@ -213,9 +217,15 @@
               <div class="mdc-layout-grid__inner">
                 <!-- row -->
                 <label class="mdc-text-field mdc-layout-grid__cell--span-6">
-                  <input type="text" class="mdc-text-field__input" id="marker-name">
+                  <input type="text" class="mdc-text-field__input" id="marker-name" required>
                   <span class="mdc-text-field__label">Marker Name</span>
                   <div class="mdc-text-field__bottom-line"></div>
+                  <p class="mdc-text-field-helptext
+                            mdc-text-field-helptext--persistent
+                            mdc-text-field-helptext--validation-msg text-center"
+                     id="marker-name-validation-msg">
+                    Must be at least 1 character
+                  </p>
                 </label>
                 <label class="mdc-text-field mdc-text-field--disabled mdc-text-field--upgraded mdc-layout-grid__cell--span-6">
                   <input type="text" class="mdc-text-field__input" id="marker-id" value="marker-0000" disabled>

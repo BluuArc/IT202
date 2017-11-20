@@ -19,7 +19,11 @@ var App = function(options){
             },
             "#markerListPage": {
                 name: "Marker List",
-                drawer: true
+                drawer: true,
+                preload: () => { //code to run before showing page
+                    return getMarkers()
+                        .then((markers) => showMarkers(markers));
+                }
             },
             "#addMarkerPage": {
                 name: "Add Marker",
@@ -35,15 +39,9 @@ var App = function(options){
         drawer: undefined,
         prev: undefined,
         snackbar: undefined,
-        personal_markers: [],
-        transport_markers: [],
         db: localforage.createInstance({
           name: "final-waypoint-finder"
         })
-    }
-    
-    function debugLog(argument) {
-        // body...
     }
     
     function notify(options = {}) {
@@ -78,23 +76,31 @@ var App = function(options){
         
         return new Promise((fulfill, reject) => {
             setTimeout(() => {
-                let page = $(".page" + pageId);
-                self.navbar.title.text(self.pages[pageId].name);
-                
-                //change highlighted icon in drawer
-                if(self.pages[pageId].drawer){
-                    $("a" + pageId).addClass("mdc-temporary-drawer--selected");
+                let preloadPromise;
+                if(self.pages[pageId] && typeof self.pages[pageId].preload === 'function'){
+                    preloadPromise = self.pages[pageId].preload();
+                }else{
+                    preloadPromise = Promise.resolve();
                 }
                 
-                //change menu button to back button
-                self.prev = prevPage;
-                self.navbar.menuButton.text(self.prev ? "arrow_back" : "menu");
-                
-                page.fadeIn(delay);
-                self.navbar.title.fadeIn(delay,() => {
-                    fulfill();
+                preloadPromise.then(() => {
+                    let page = $(".page" + pageId);
+                    self.navbar.title.text(self.pages[pageId].name);
+                    
+                    //change highlighted icon in drawer
+                    if(self.pages[pageId].drawer){
+                        $("a" + pageId).addClass("mdc-temporary-drawer--selected");
+                    }
+                    
+                    //change menu button to back button
+                    self.prev = prevPage;
+                    self.navbar.menuButton.text(self.prev ? "arrow_back" : "menu");
+                    
+                    page.fadeIn(delay);
+                    self.navbar.title.fadeIn(delay,() => {
+                        fulfill();
+                    });
                 });
-                
             },delay);    
         })
     }
@@ -139,6 +145,33 @@ var App = function(options){
             })
     }
     
+    // create and show marker cards on marker page
+    function showMarkers(markers) {
+        if(!markers){
+            debug.log("showMarkers: markers is empty");
+            return;
+        }
+        let keys = Object.keys(markers).sort((a,b) => a < b ? true : false); //sort alphabetically
+        let template = $("#markerListPage #markerTemplate");
+        $("#markerListPage .card-container").remove();
+        let card_list = $("#markerListPage #card-list");
+        keys.map((k) => {
+            let markerInfo = markers[k];
+            let card = template.clone().attr("id",markerInfo.id).addClass("card-container");
+            card.find("#marker-name").text(markerInfo.name);
+            card.find("#marker-location").text(`Latitude: ${markerInfo.coords.latitude}/Longitude: ${markerInfo.coords.longitude}`);
+            card.find("#marker-notes").text( markerInfo.notes && markerInfo.notes.length > 0 ? markerInfo.notes : "No notes found.");
+            card.find("button#edit").on("click", (e) => {
+                debug.log("Clicked edit for", markerInfo);
+            });
+            card.find("button#remove").on("click", (e) => {
+                debug.log("Clicked remove for", markerInfo);
+            });
+            
+            card_list.append(card);
+        });
+    }
+    
     function initializePages(argument) {
         // all pages
         let pages = $(".pages");
@@ -166,6 +199,7 @@ var App = function(options){
           zoom: 15,
         });
         
+        // initialize marker page
         let markerPage = $(".page#addMarkerPage");
         markerPage.find("button#cancel").on("click", (e) => {
             e.preventDefault();
@@ -182,14 +216,37 @@ var App = function(options){
                     latitude: markerPage.find("#marker-latitude").val(),
                     longitude: markerPage.find("#marker-longitude").val(),    
                 },
-                notes: markerPage.find("#marker-notes").val()
+                notes: markerPage.find("#marker-notes").val(),
+                type: 'personal'
             };
-            addMarker(markerInfo);
+            if(markerInfo.name.length === 0){
+                console.error("Name must have at least 1 character");
+                return;
+            }
+            try{
+                return addMarker(markerInfo).then(() => setPageTo(self.prev));
+            }catch(err){
+                console.error(err);
+            }
+            
         });
         
-        //conditionally initialize map
+        //conditionally initialize map and marker fields
         ["#mapPage", "#markerListPage"].forEach(function(d,i){
             $(`.page${d}`).find("#addLocationButton").on("click", function(e){
+                
+                // preset form data
+                markerPage.find("#marker-id").val("m-" + (new Date() - 0)); //key markers by creation date
+                let coords = self.pages["#mapPage"].currentLocationMarker.getPosition();
+                markerPage.find("#marker-latitude").val(coords.lat());
+                markerPage.find("#marker-longitude").val(coords.lng());
+                markerPage.find("#marker-name").val("");
+                markerPage.find("#marker-notes").val("");
+                
+                // remove any invalid-related classes
+                markerPage.find(".mdc-text-field--invalid").each(function(){
+                  $(this).removeAttr(".mdc-text-field--invalid");
+                })
                 
                 setPageTo("#addMarkerPage",d).then(() => {
                     let page_data = self.pages["#addMarkerPage"];
@@ -226,13 +283,36 @@ var App = function(options){
     
     function addMarker(options = {}){
         debug.log("Adding marker", options);
-        const fields = ['id', 'name','coords','notes'];
+        const fields = ['id', 'name','coords','notes', 'type'];
         let isInvalid = fields.reduce((acc,curr) => acc || options[curr] === undefined,false);
         if(isInvalid){
             throw "Invalid marker data";
         }else{
             debug.log("Marker data is valid");
+            
+            let db = self.db;
+            
+            return db.getItem(options.id)
+                .then((existing) => {
+                    // remove existing object, if it exists
+                    if(existing){
+                        console.log("Overwriting old marker",existing);
+                        return db.removeItem(options.id);
+                    }else{
+                        return Promise.resolve();
+                    }
+                }).then(() => {
+                    return db.setItem(options.id, options);
+                }).then(() => debug.log("Added new marker", options));
         }
+    }
+    
+    // create a local copy of markers from cache
+    function getMarkers() {
+        let markers = {};
+        return self.db.iterate(function(value,key,index) {
+            markers[key] = value;
+        }).then(() => markers);
     }
     
     function initializeServiceWorker() {
