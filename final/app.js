@@ -171,6 +171,21 @@ var App = function(options){
             e.preventDefault();
             setPageTo(self.prev);
         });
+        markerPage.find("button#save").on("click", (e) => {
+            e.preventDefault();
+            
+            //get form data
+            let markerInfo = {
+                name: markerPage.find("#marker-name").val(),
+                id: markerPage.find("#marker-id").val(),
+                coords: {
+                    latitude: markerPage.find("#marker-latitude").val(),
+                    longitude: markerPage.find("#marker-longitude").val(),    
+                },
+                notes: markerPage.find("#marker-notes").val()
+            };
+            addMarker(markerInfo);
+        });
         
         //conditionally initialize map
         ["#mapPage", "#markerListPage"].forEach(function(d,i){
@@ -212,7 +227,7 @@ var App = function(options){
     function addMarker(options = {}){
         debug.log("Adding marker", options);
         const fields = ['id', 'name','coords','notes'];
-        let isInvalid = fields.reduce((acc,curr) => acc || curr[fields] === undefined,false);
+        let isInvalid = fields.reduce((acc,curr) => acc || options[curr] === undefined,false);
         if(isInvalid){
             throw "Invalid marker data";
         }else{
