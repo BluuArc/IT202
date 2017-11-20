@@ -211,16 +211,36 @@
           <form>
             <div class="mdc-layout-grid">
               <div class="mdc-layout-grid__inner">
+                <!-- row -->
                 <label class="mdc-text-field mdc-layout-grid__cell--span-6">
                   <input type="text" class="mdc-text-field__input" id="marker-name">
                   <span class="mdc-text-field__label">Marker Name</span>
                   <div class="mdc-text-field__bottom-line"></div>
                 </label>
-                <label class="mdc-text-field mdc-text-field--disabled mdc-layout-grid__cell--span-6">
-                  <input type="text" class="mdc-text-field__input" id="marker-location" disabled>
-                  <span class="mdc-text-field__label">Marker Location</span>
+                <label class="mdc-text-field mdc-text-field--disabled mdc-text-field--upgraded mdc-layout-grid__cell--span-6">
+                  <input type="text" class="mdc-text-field__input" id="marker-id" value="marker-0000" disabled>
+                  <span class="mdc-text-field__label mdc-text-field__label--float-above">Marker ID</span>
                   <div class="mdc-text-field__bottom-line"></div>
                 </label>
+                
+                <!-- row -->
+                <label class="mdc-text-field mdc-text-field--disabled mdc-text-field--upgraded mdc-layout-grid__cell--span-6">
+                  <input type="text" class="mdc-text-field__input" id="marker-latitude" value="0.0" disabled>
+                  <span class="mdc-text-field__label mdc-text-field__label--float-above">Marker Latitude</span>
+                  <div class="mdc-text-field__bottom-line"></div>
+                </label>
+                <label class="mdc-text-field mdc-text-field--disabled mdc-text-field--upgraded mdc-layout-grid__cell--span-6">
+                  <input type="text" class="mdc-text-field__input" id="marker-longitude" value="0.0" disabled>
+                  <span class="mdc-text-field__label mdc-text-field__label--float-above">Marker Longitude</span>
+                  <div class="mdc-text-field__bottom-line"></div>
+                </label>
+                
+                <!-- row -->
+                <div class="mdc-text-field mdc-text-field--textarea mdc-layout-grid__cell--span-12">
+                  <textarea id="marker-notes" class="mdc-text-field__input" rows="8"></textarea>
+                  <label for="marker-notes" class="mdc-text-field__label">Notes about this marker</label>
+                </div>
+                
               </div>
             </div>
             

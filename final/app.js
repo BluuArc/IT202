@@ -203,7 +203,9 @@ var App = function(options){
             });
         });
         
-        $("#addMarkerPage #newMarkerMap").css("height", $(".content").height()*0.95 - $("#addMarkerPage").height() - $("#addMarkerPage .mdc-card__actions").height())
+        // offset height of marker options based on form size
+        let markerMapHeight = Math.max($(".content").height()*0.95 - $("#addMarkerPage").height() - $("#addMarkerPage .mdc-card__actions").height(),200);
+        $("#addMarkerPage #newMarkerMap").css("height", markerMapHeight)
         
     }
     
