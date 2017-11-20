@@ -1,5 +1,5 @@
 'use strict';
-/* global mdc $ */
+/* global mdc $ localforage */
 var App = function(options){
     let debug = {
         mode: location.hostname.indexOf("c9users.io") > -1 || location.hostname.indexOf("127.0.0.1") > -1,
@@ -36,7 +36,10 @@ var App = function(options){
         prev: undefined,
         snackbar: undefined,
         personal_markers: [],
-        transport_markers: []
+        transport_markers: [],
+        db: localforage.createInstance({
+          name: "final-waypoint-finder"
+        })
     }
     
     function debugLog(argument) {
@@ -205,7 +208,8 @@ var App = function(options){
                     notify({
                         message: "Reload to update application",
                         actionText: "Reload",
-                        actionHandler: () => location.reload()
+                        actionHandler: () => location.reload(),
+                        timeout: 10000
                     });
                 }
                 if(data.version){
@@ -253,14 +257,20 @@ var App = function(options){
         initializePages();
         initializeServiceWorker();
         
-        
-        return showCurrentLocation(self.pages["#mapPage"])
+        let dbInit = self.db.ready()
+            .then(() => {
+                debug.log("DB ready");
+            });
+            
+        let mapInit = showCurrentLocation(self.pages["#mapPage"])
             .then(() => {
                 setTimeout(() => setPageTo("#generalPage"), 150); //delayed change
             });
+        
+        
+        return Promise.all([dbInit,mapInit])
+            .then(() => debug.log("Initialization finished"));
     }
-    
-    
     
     
     return {
