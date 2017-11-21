@@ -44,6 +44,11 @@ var App = function(options){
             title: undefined,
             menuButton: undefined
         },
+        markerIcons: {
+            current: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
+            transportation: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+            personal: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png"
+        },
         drawer: undefined,
         prev: undefined,
         snackbar: undefined,
@@ -134,16 +139,27 @@ var App = function(options){
                     mapData.currentLocationMarker.setMap(null);
                 }
                 
-                
                 let coords = {
                     lat: data.coords.latitude,
                     lng: data.coords.longitude
-                }
+                };
+                
+                
                 
                 mapData.currentLocationMarker = new google.maps.Marker({
                   position: coords,
-                  map: mapData.map
+                  map: mapData.map,
+                  icon: self.markerIcons.current,
+                  title: 'Current Location'
                 });
+                
+                if(!mapData.currentLocationWindow){
+                    mapData.currentLocationWindow = new google.maps.InfoWindow({
+                        content: '<h1 class="text-center">Your Current Location</h1>'
+                    });
+                }
+                
+                mapData.currentLocationMarker.addListener('click', () => mapData.currentLocationWindow.open(mapData.map,mapData.currentLocationMarker));
                 
                 mapData.map.setCenter(coords);
                 
@@ -163,7 +179,7 @@ var App = function(options){
             let card = template.clone().attr("id",markerInfo.id).addClass("card-container");
             card.find("#marker-name").text(markerInfo.name);
             card.find("#marker-location").text(`Latitude: ${markerInfo.coords.lat}/Longitude: ${markerInfo.coords.lng}`);
-            card.find("#marker-notes").text( markerInfo.notes && markerInfo.notes.length > 0 ? markerInfo.notes : "No notes found.");
+            card.find("#marker-notes").html( markerInfo.notes && markerInfo.notes.length > 0 ? markerInfo.notes : "No notes found.");
             card.find("button#edit").on("click", (e) => {
                 debug.log("Clicked edit for", markerInfo);
             });
@@ -192,10 +208,24 @@ var App = function(options){
         let keys = Object.keys(markers);
         page_data.markers = keys.map((m) => {
             let marker = markers[m];
+            
+            // info window code referenced from https://developers.google.com/maps/documentation/javascript/examples/infowindow-simple
+            let window_content = `
+                <div class="infowindow">
+                    <h1>${marker.name || marker.id}</h1>
+                    <p>${marker.notes}<p>
+                </div>
+            `;
+            marker.infoWindow = new google.maps.InfoWindow({
+                content: window_content
+            });
             marker.mapMarker = new google.maps.Marker({
                 position: marker.coords,
-                map: page_data.map
+                map: page_data.map,
+                title: marker.name,
+                icon: self.markerIcons[marker.type]
             });
+            marker.mapMarker.addListener('click', () => marker.infoWindow.open(page_data.map, marker.mapMarker));
             return marker;
         });
     }
@@ -236,7 +266,8 @@ var App = function(options){
         markerPage.find("button#save").on("click", (e) => {
             e.preventDefault();
             
-            //get form data
+            // get form data
+            // linebreak fix from https://stackoverflow.com/questions/16165286/copy-from-textarea-to-div-preserving-linebreaks
             let markerInfo = {
                 name: markerPage.find("#marker-name").val(),
                 id: markerPage.find("#marker-id").val(),
@@ -244,7 +275,7 @@ var App = function(options){
                     lat: +markerPage.find("#marker-latitude").val(),
                     lng: +markerPage.find("#marker-longitude").val(),    
                 },
-                notes: markerPage.find("#marker-notes").val(),
+                notes: markerPage.find("#marker-notes").val().replace(/\n/g, '<br>'),
                 type: 'personal'
             };
             if(markerInfo.name.length === 0){
