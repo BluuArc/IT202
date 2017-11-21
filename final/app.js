@@ -15,14 +15,22 @@ var App = function(options){
                 name: "Map",
                 drawer: true,
                 map: undefined,
-                currentLocationMarker: undefined
+                currentLocationMarker: undefined,
+                markers: [],
+                preload: () => {
+                    if(self.pages["#mapPage"].markers.length === 0){
+                        return getMarkers().then(showMarkersOnMapPage)
+                    }else{
+                        return Promise.resolve();
+                    }
+                }
             },
             "#markerListPage": {
                 name: "Marker List",
                 drawer: true,
                 preload: () => { //code to run before showing page
                     return getMarkers()
-                        .then((markers) => showMarkers(markers));
+                        .then((markers) => listPersonalMarkers(markers));
                 }
             },
             "#addMarkerPage": {
@@ -146,20 +154,15 @@ var App = function(options){
     }
     
     // create and show marker cards on marker page
-    function showMarkers(markers) {
-        if(!markers){
-            debug.log("showMarkers: markers is empty");
-            return;
-        }
-        let keys = Object.keys(markers).sort((a,b) => a < b ? true : false); //sort alphabetically
+    // input: markers object where each marker is keyed by ID
+    function listPersonalMarkers(markers) {
         let template = $("#markerListPage #markerTemplate");
         $("#markerListPage .card-container").remove();
         let card_list = $("#markerListPage #card-list");
-        keys.map((k) => {
-            let markerInfo = markers[k];
+        let createCard = (markerInfo) => {
             let card = template.clone().attr("id",markerInfo.id).addClass("card-container");
             card.find("#marker-name").text(markerInfo.name);
-            card.find("#marker-location").text(`Latitude: ${markerInfo.coords.latitude}/Longitude: ${markerInfo.coords.longitude}`);
+            card.find("#marker-location").text(`Latitude: ${markerInfo.coords.lat}/Longitude: ${markerInfo.coords.lng}`);
             card.find("#marker-notes").text( markerInfo.notes && markerInfo.notes.length > 0 ? markerInfo.notes : "No notes found.");
             card.find("button#edit").on("click", (e) => {
                 debug.log("Clicked edit for", markerInfo);
@@ -169,6 +172,31 @@ var App = function(options){
             });
             
             card_list.append(card);
+        }
+        if(!markers){
+            debug.log("listPersonalMarkers: markers is empty");
+            return;
+        }
+        let keys = Object.keys(markers).sort((a,b) => a < b ? true : false); //sort alphabetically
+        keys.map((k) => createCard(markers[k]));
+    }
+    
+    // create and show markers on map page
+    // input: markers object where each marker is keyed by ID
+    function showMarkersOnMapPage(markers){
+        let page_data = self.pages["#mapPage"];
+        
+        // delete old markers
+        page_data.markers.map((m) => { m.mapMarker.setMap(null) });
+        
+        let keys = Object.keys(markers);
+        page_data.markers = keys.map((m) => {
+            let marker = markers[m];
+            marker.mapMarker = new google.maps.Marker({
+                position: marker.coords,
+                map: page_data.map
+            });
+            return marker;
         });
     }
     
@@ -213,8 +241,8 @@ var App = function(options){
                 name: markerPage.find("#marker-name").val(),
                 id: markerPage.find("#marker-id").val(),
                 coords: {
-                    latitude: markerPage.find("#marker-latitude").val(),
-                    longitude: markerPage.find("#marker-longitude").val(),    
+                    lat: +markerPage.find("#marker-latitude").val(),
+                    lng: +markerPage.find("#marker-longitude").val(),    
                 },
                 notes: markerPage.find("#marker-notes").val(),
                 type: 'personal'
@@ -303,7 +331,8 @@ var App = function(options){
                     }
                 }).then(() => {
                     return db.setItem(options.id, options);
-                }).then(() => debug.log("Added new marker", options));
+                }).then(() => getMarkers().then(showMarkersOnMapPage)) //update map
+                .then(() => debug.log("Added new marker", options));
         }
     }
     
@@ -348,6 +377,39 @@ var App = function(options){
             });
         }
     }
+    
+    // needed for conversion from old format to new format
+    function updateDB(){
+        let db = self.db;
+        let markers = [], doChange = false;
+        return db.iterate((value,key,index) => {
+            if(!value.coords.lat || !value.coords.lng || value.coords.latitude || value.coords.longitude){
+                debug.log("Upgrading marker", value);
+                value.coords.lat = +value.coords.latitude;
+                value.coords.lng = +value.coords.longitude;
+                delete value.coords.latitude;
+                delete value.coords.longitude;
+                debug.log("New value", value);
+                doChange = true;
+            }else{
+                debug.log("Not changing marker", value);
+            }
+            markers.push(value);
+        }).then(() => {
+            if(doChange){
+                debug.log("Clearing database and re-adding info");
+                return db.clear().then(() => {
+                    let loadPromises = [];
+                    markers.map((m) => loadPromises.push(db.setItem(m.id,m)));
+                    return Promise.all(loadPromises);
+                })
+            }else{
+                return Promise.resolve();
+            }
+        }).then(() => {
+            debug.log("Finished updating DB");
+        })
+    }
 
     
     function init() {
@@ -376,6 +438,7 @@ var App = function(options){
         initializeServiceWorker();
         
         let dbInit = self.db.ready()
+            .then(() => updateDB())
             .then(() => {
                 debug.log("DB ready");
             });
