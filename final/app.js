@@ -186,6 +186,7 @@ var App = function(options){
             card.find("#marker-date").text(new Date(+markerInfo.id.split("-")[1]).toLocaleString());
             card.find("button#edit").on("click", (e) => {
                 debug.log("Clicked edit for", markerInfo);
+                showAddMarkerPage("#markerListPage", markerInfo);
             });
             card.find("button#remove").on("click", (e) => {
                 debug.log("Clicked remove for", markerInfo);
@@ -258,6 +259,54 @@ var App = function(options){
         });
     }
     
+    // separate function needed for custom filling of fields
+    function showAddMarkerPage(prevPage, marker = {}){
+        let markerPage = $(".page#addMarkerPage");
+        // preset form data
+        markerPage.find("#marker-id").val(marker.id || "m-" + (new Date() - 0)); //key markers by creation date
+        if(!marker.coords){
+            let coords = self.pages["#mapPage"].currentLocationMarker.getPosition();
+            markerPage.find("#marker-latitude").val(coords.lat());
+            markerPage.find("#marker-longitude").val(coords.lng());    
+        }else{
+            markerPage.find("#marker-latitude").val(marker.coords.lat);
+            markerPage.find("#marker-longitude").val(marker.coords.lng);
+        }
+        
+        markerPage.find("#marker-name").val(marker.name || "");
+        markerPage.find("#marker-notes").val((marker.notes !== undefined ? marker.notes.replace(/<br>/g, '\n') : ""));
+        
+        // remove any invalid-related classes
+        markerPage.find(".mdc-text-field--invalid").each(function(){
+          $(this).removeAttr(".mdc-text-field--invalid");
+        })
+        
+        setPageTo("#addMarkerPage",prevPage).then(() => {
+            let page_data = self.pages["#addMarkerPage"];
+            if(!page_data.map){
+                page_data.map = new google.maps.Map($("#addMarkerPage #newMarkerMap").get(0), {
+                  zoom: 15,
+                });
+            }
+            
+            let locationPromise;
+            if(!page_data.currentLocationMarker){
+                locationPromise = showCurrentLocation(page_data);
+            }else{
+                locationPromise = getCurrentLocation()
+                    .then((data) => {
+                        let coords = {
+                            lat: data.coords.latitude,
+                            lng: data.coords.longitude
+                        };
+                        
+                        page_data.currentLocationMarker.setPosition(coords);
+                        return;
+                    });
+            }
+        });
+    }
+    
     function initializePages(argument) {
         // all pages
         let pages = $(".pages");
@@ -282,7 +331,7 @@ var App = function(options){
         // page specific inits
         // initialize map page
         self.pages["#mapPage"].map = new google.maps.Map(document.getElementById('map'), {
-          zoom: 15,
+            zoom: 15,
         });
         
         // initialize marker page
@@ -321,44 +370,7 @@ var App = function(options){
         //conditionally initialize map and marker fields
         ["#mapPage", "#markerListPage"].forEach(function(d,i){
             $(`.page${d}`).find("#addLocationButton").on("click", function(e){
-                
-                // preset form data
-                markerPage.find("#marker-id").val("m-" + (new Date() - 0)); //key markers by creation date
-                let coords = self.pages["#mapPage"].currentLocationMarker.getPosition();
-                markerPage.find("#marker-latitude").val(coords.lat());
-                markerPage.find("#marker-longitude").val(coords.lng());
-                markerPage.find("#marker-name").val("");
-                markerPage.find("#marker-notes").val("");
-                
-                // remove any invalid-related classes
-                markerPage.find(".mdc-text-field--invalid").each(function(){
-                  $(this).removeAttr(".mdc-text-field--invalid");
-                })
-                
-                setPageTo("#addMarkerPage",d).then(() => {
-                    let page_data = self.pages["#addMarkerPage"];
-                    if(!page_data.map){
-                        page_data.map = new google.maps.Map($("#addMarkerPage #newMarkerMap").get(0), {
-                          zoom: 15,
-                        });
-                    }
-                    
-                    let locationPromise;
-                    if(!page_data.currentLocationMarker){
-                        locationPromise = showCurrentLocation(page_data);
-                    }else{
-                        locationPromise = getCurrentLocation()
-                            .then((data) => {
-                                let coords = {
-                                    lat: data.coords.latitude,
-                                    lng: data.coords.longitude
-                                };
-                                
-                                page_data.currentLocationMarker.setPosition(coords);
-                                return;
-                            });
-                    }
-                });
+                showAddMarkerPage(d)
             });
         });
         
@@ -383,7 +395,7 @@ var App = function(options){
                 .then((existing) => {
                     // remove existing object, if it exists
                     if(existing){
-                        console.log("Overwriting old marker",existing);
+                        debug.log("Overwriting old marker",existing);
                         return db.removeItem(options.id);
                     }else{
                         return Promise.resolve();
