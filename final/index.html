@@ -46,7 +46,8 @@
       }
       
       .infowindow {
-        width: 200px;
+        max-width: 400px;
+        min-width: 200px;
       }
       
       #mainNavbar {
@@ -153,6 +154,35 @@
       <button type="button" class="mdc-snackbar__action-button"></button>
     </div>
   </div>
+  
+  <!-- dialog reference: https://material.io/components/web/catalog/dialogs/ -->
+  <aside id="remove-marker-dialog" class="mdc-dialog" role="alertdialog">
+    <div class="mdc-dialog__surface">
+      <header class="mdc-dialog__header">
+        <h2 id="my-mdc-dialog-label" class="mdc-dialog__header__title">
+          Are you sure you want to delete this marker?
+        </h2>
+      </header>
+      <section id="my-mdc-dialog-description" class="mdc-dialog__body">
+        <div class="mdc-card">
+          <section class="mdc-card__primary">
+            <h1 class="mdc-card__title mdc-card__title--large" id="marker-name">Marker Title (Template)</h1>
+            <h2 class="mdc-card__subtitle" id="marker-location">Marker Location (Latitude, Longitude)</h2>
+            <h2 class="mdc-card__subtitle"><b>ID: </b><span id="marker-id">Marker ID</span></h2>
+                <h2 class="mdc-card__subtitle"><b>Added: </b><span id="marker-date">Marker Date</span></h2>
+          </section>
+          <section class="mdc-card__supporting-text" id="marker-notes">
+            Notes, if any.
+          </section>
+        </div>
+      </section>
+      <footer class="mdc-dialog__footer">
+        <button type="button" class="mdc-button mdc-dialog__footer__button mdc-dialog__footer__button--cancel">Cancel</button>
+        <button type="button" class="mdc-button mdc-dialog__footer__button mdc-dialog__footer__button--accept">Delete</button>
+      </footer>
+    </div>
+    <div class="mdc-dialog__backdrop"></div>
+  </aside>
   <div class="content">
     <header class="mdc-toolbar" id="mainNavbar">
       <div class="mdc-toolbar__row">
@@ -198,6 +228,8 @@
               <section class="mdc-card__primary">
                 <h1 class="mdc-card__title mdc-card__title--large" id="marker-name">Marker Title (Template)</h1>
                 <h2 class="mdc-card__subtitle" id="marker-location">Marker Location (Latitude, Longitude)</h2>
+                <h2 class="mdc-card__subtitle"><b>ID: </b><span id="marker-id">Marker ID</span></h2>
+                <h2 class="mdc-card__subtitle"><b>Added: </b><span id="marker-date">Marker Date</span></h2>
               </section>
               <section class="mdc-card__supporting-text" id="marker-notes">
                 Notes, if any.
@@ -261,10 +293,6 @@
                 
               </div>
             </div>
-            
-            
-            
-            
           </form>
         </section>
         <section class="mdc-card__actions">

@@ -52,6 +52,8 @@ var App = function(options){
         drawer: undefined,
         prev: undefined,
         snackbar: undefined,
+        markerToDelete: undefined,
+        dialog: undefined,
         db: localforage.createInstance({
           name: "final-waypoint-finder"
         })
@@ -72,6 +74,7 @@ var App = function(options){
         self.snackbar.show(notifData);
     }
     
+    // all IDs should be in the format of "#<id>"
     function setPageTo(pageId, prevPage) {
         let delay = 125;
         let pages = $(".page");
@@ -144,8 +147,6 @@ var App = function(options){
                     lng: data.coords.longitude
                 };
                 
-                
-                
                 mapData.currentLocationMarker = new google.maps.Marker({
                   position: coords,
                   map: mapData.map,
@@ -175,22 +176,47 @@ var App = function(options){
         let template = $("#markerListPage #markerTemplate");
         $("#markerListPage .card-container").remove();
         let card_list = $("#markerListPage #card-list");
+        let dialog_html = $("#remove-marker-dialog");
         let createCard = (markerInfo) => {
             let card = template.clone().attr("id",markerInfo.id).addClass("card-container");
             card.find("#marker-name").text(markerInfo.name);
-            card.find("#marker-location").text(`Latitude: ${markerInfo.coords.lat}/Longitude: ${markerInfo.coords.lng}`);
+            card.find("#marker-id").text(markerInfo.id);
+            card.find("#marker-location").html(`<b>Latitude/Longitude: </b>${markerInfo.coords.lat}/${markerInfo.coords.lng}`);
             card.find("#marker-notes").html( markerInfo.notes && markerInfo.notes.length > 0 ? markerInfo.notes : "No notes found.");
+            card.find("#marker-date").text(new Date(+markerInfo.id.split("-")[1]).toLocaleString());
             card.find("button#edit").on("click", (e) => {
                 debug.log("Clicked edit for", markerInfo);
             });
             card.find("button#remove").on("click", (e) => {
                 debug.log("Clicked remove for", markerInfo);
+                self.markerToDelete = markerInfo;
+                
+                dialog_html.find("#marker-name").text(markerInfo.name);
+                dialog_html.find("#marker-location").text(`Latitude: ${markerInfo.coords.lat}/Longitude: ${markerInfo.coords.lng}`);
+                dialog_html.find("#marker-notes").html( markerInfo.notes && markerInfo.notes.length > 0 ? markerInfo.notes : "No notes found.");
+                
+                self.dialog.$object.show();
+                self.dialog.show();
             });
             
             card_list.append(card);
         }
-        if(!markers){
+        // show message for when no markers are present
+        if(!markers || Object.keys(markers).length === 0){
             debug.log("listPersonalMarkers: markers is empty");
+            let note_element = `
+                <div class="mdc-layout-grid__cell--span-12 card-container">
+                    <div class="mdc-card">
+                      <section class="mdc-card__primary">
+                        <h1 class="mdc-card__title mdc-card__title--large" id="marker-name">No Markers Found</h1>
+                      </section>
+                      <section class="mdc-card__supporting-text" id="marker-notes">
+                        Try adding a marker by clicking the button on the bottom left of the screeen.
+                      </section>
+                    </div>
+                </div>
+            `
+            $(note_element).appendTo(card_list);
             return;
         }
         let keys = Object.keys(markers).sort((a,b) => a < b ? true : false); //sort alphabetically
@@ -213,7 +239,9 @@ var App = function(options){
             let window_content = `
                 <div class="infowindow">
                     <h1>${marker.name || marker.id}</h1>
-                    <p>${marker.notes}<p>
+                    <p><b>ID: </b>${marker.id}</p>
+                    <p><b>Latitude/Longitude: </b>${marker.coords.lat}/${marker.coords.lng}</p>
+                    <p>${marker.notes || "No notes found"}</p>
                 </div>
             `;
             marker.infoWindow = new google.maps.InfoWindow({
@@ -367,6 +395,19 @@ var App = function(options){
         }
     }
     
+    function removeMarker(markerKey){
+        let db = self.db;
+        return db.getItem(markerKey)
+            .then((item) => {
+                if(item){
+                    debug.log("Deleting marker", item);
+                    return db.removeItem(markerKey);
+                }else{
+                    throw "Does not exist";
+                }
+            });
+    }
+    
     // create a local copy of markers from cache
     function getMarkers() {
         let markers = {};
@@ -415,15 +456,19 @@ var App = function(options){
         let markers = [], doChange = false;
         return db.iterate((value,key,index) => {
             if(!value.coords.lat || !value.coords.lng || value.coords.latitude || value.coords.longitude){
-                debug.log("Upgrading marker", value);
+                debug.log("Converting coords for", value);
                 value.coords.lat = +value.coords.latitude;
                 value.coords.lng = +value.coords.longitude;
                 delete value.coords.latitude;
                 delete value.coords.longitude;
                 debug.log("New value", value);
                 doChange = true;
-            }else{
-                debug.log("Not changing marker", value);
+            }
+            
+            if(value.visibility === undefined){
+                debug.log("Adding visibility field to",value);
+                value.visibility = true; //visible by default
+                doChange = true;
             }
             markers.push(value);
         }).then(() => {
@@ -445,6 +490,8 @@ var App = function(options){
     
     function init() {
         mdc.autoInit();
+        
+        // intiialize navbar
         mdc.toolbar.MDCToolbar.attachTo(document.querySelector('.mdc-toolbar'));
         self.drawer = new mdc.drawer.MDCTemporaryDrawer(document.querySelector('.mdc-temporary-drawer'));
         self.navbar.menuButton = $("#mainNavbar .menu");
@@ -455,7 +502,7 @@ var App = function(options){
             }else{
                 self.drawer.open = !self.drawer.open;
             }
-        })
+        });
         
         self.navbar.title = $(".mdc-toolbar__title#navbarTitle");
         
@@ -464,6 +511,36 @@ var App = function(options){
         const MDCSnackbar = mdc.snackbar.MDCSnackbar;
         const MDCSnackbarFoundation = mdc.snackbar.MDCSnackbarFoundation;
         self.snackbar = new MDCSnackbar(document.querySelector('.mdc-snackbar'));
+        
+        // initialize dialog box
+        // reference: https://material.io/components/web/catalog/dialogs/
+        const MDCDialog = mdc.dialog.MDCDialog;
+        const MDCDialogFoundation = mdc.dialog.MDCDialogFoundation;
+        const util = mdc.dialog.util;
+        
+        self.dialog = new MDCDialog(document.querySelector("#remove-marker-dialog"));
+        self.dialog.$object = $("#remove-marker-dialog");
+        
+        self.dialog.listen('MDCDialog:accept', () => {
+            if(self.markerToDelete){
+                // delete and update lists
+                removeMarker(self.markerToDelete.id).then(() => {
+                    return Promise.all([
+                        setPageTo('#markerListPage'),
+                        getMarkers().then(showMarkersOnMapPage)
+                    ])
+                })
+            }
+        });
+        
+        self.dialog.listen('MDCDialog:cancel', function() {
+          self.dialog.close();
+          self.dialog.$object.hide();
+          self.markerToDelete = undefined;
+        });
+        
+        self.dialog.close();
+        self.dialog.$object.hide();
         
         initializePages();
         initializeServiceWorker();
