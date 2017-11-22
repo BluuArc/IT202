@@ -55,7 +55,12 @@ var App = function(options){
         markerToDelete: undefined,
         dialog: undefined,
         db: localforage.createInstance({
-          name: "final-waypoint-finder"
+            name: "final-waypoint-finder"
+        }),
+        cta_bus_db: new CTA_BUS_DB({
+            key: "KYtPfkm24VyAEnnQmn9qL39ed",
+            proxy: "https://macabre-broomstick-39921.herokuapp.com/getjson/",
+            doEncodeURI: true
         })
     }
     
@@ -559,9 +564,8 @@ var App = function(options){
         
         let dbInit = self.db.ready()
             .then(() => updateDB())
-            .then(() => {
-                debug.log("DB ready");
-            });
+            .then(() => self.cta_bus_db.init())
+            .then(() => debug.log("DB ready"));
             
         let mapInit = showCurrentLocation(self.pages["#mapPage"])
             .then(() => {

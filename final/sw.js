@@ -19,7 +19,7 @@
  
 // Initially from project 7
 
-let version = '0.003.005';
+let version = '0.004.006';
 let appName = 'TheBigProject';
 let appCacheName = `${appName}_${version}`;
 
@@ -27,6 +27,8 @@ const appShellFiles = [
   './',
   './index.html',
   './app.js',
+  './scripts/localforage.min.js',
+  './scripts/cta_bus_db.js',
   './assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_32.ico',
   './assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_128.png',
   './assets/ic_location_on_black_24dp/web/ic_location_on_black_24dp_144.png',
@@ -109,10 +111,12 @@ self.addEventListener('activate', function(e){
 });
 
 self.addEventListener('fetch', event => {
-  // console.log(event.request);
-  event.respondWith(
+  let dataUrl = "ctabustracker.com";
+  if(event.request.url.indexOf(dataUrl) === -1){ //ignore data requests
+    event.respondWith(
     caches.match(event.request, {ignoreSearch:true}).then(response => {
-      return response || fetch(event.request);
-    })
-  );
+        return response || fetch(event.request);
+      })
+    );  
+  }
 });
