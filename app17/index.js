@@ -64,7 +64,7 @@ function listSavedQuotes(){
 $("#btnGetSavedQuotes").on("click", listSavedQuotes);
 
 $("body").on("click", ".savedQuote", function(){
-    console.log($(this).text());
+    say($(this).text());
 });
 
 function init(){
