@@ -139,7 +139,10 @@
           <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">map</i>Map
         </a>
         <a class="mdc-list-item mdc-typography--display3" href="#" id="markerListPage">
-          <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">location_on</i>Marker List
+          <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">location_on</i>Personal Marker List
+        </a>
+        <a class="mdc-list-item mdc-typography--display3" href="#" id="transportationMarkerListPage">
+          <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">directions_bus</i>Transportation Marker List
         </a>
       </nav>
     </nav>
@@ -299,6 +302,33 @@
           <button class="mdc-button mdc-button--compact mdc-card__action" id="save">Save</button>
           <button class="mdc-button mdc-button--compact mdc-card__action" id="cancel">Cancel</button>
         </section>
+      </div>
+    </div>
+    <div class="page" id="transportationMarkerListPage">
+      <!-- grid reference: https://material.io/components/web/catalog/layout-grid/ -->
+      <div class="mdc-layout-grid">
+        <div class="mdc-layout-grid__inner" id="card-list">
+          <div class="mdc-layout-grid__cell--span-12" id="transportMarkerTemplate">
+            <!-- card reference: https://material.io/components/web/catalog/cards/ -->
+            <div class="mdc-card">
+              <section class="mdc-card__primary">
+                <h1 class="mdc-card__title mdc-card__title--large" id="marker-name">Marker Title (Template)</h1>
+                <h2 class="mdc-card__subtitle" id="marker-location">Marker Location (Latitude, Longitude)</h2>
+                <h2 class="mdc-card__subtitle"><b>ID: </b><span id="marker-id">Marker ID</span></h2>
+              </section>
+              <section class="mdc-card__supporting-text" id="transport-info">
+                Transport Information goes here
+              </section>
+              <section class="mdc-card__supporting-text" id="marker-notes">
+                Notes, if any.
+              </section>
+              <section class="mdc-card__actions">
+                <button class="mdc-button mdc-button--compact mdc-card__action" id="edit">Edit</button>
+                <button class="mdc-button mdc-button--compact mdc-card__action" id="remove">Remove</button>
+              </section>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>

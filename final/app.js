@@ -26,7 +26,7 @@ var App = function(options){
                 }
             },
             "#markerListPage": {
-                name: "Marker List",
+                name: "Personal Marker List",
                 drawer: true,
                 preload: () => { //code to run before showing page
                     return getMarkers()
@@ -38,6 +38,10 @@ var App = function(options){
                 drawer: false,
                 map: undefined,
                 currentLocationMarker: undefined
+            },
+            "#transportationMarkerListPage": {
+                name: "Transportation Markers",
+                drawer: true
             }
         },
         navbar: {
