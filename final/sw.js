@@ -19,7 +19,7 @@
  
 // Initially from project 7
 
-let version = '0.004.006';
+let version = '0.004.007';
 let appName = 'TheBigProject';
 let appCacheName = `${appName}_${version}`;
 

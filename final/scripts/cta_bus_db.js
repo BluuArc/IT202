@@ -23,7 +23,7 @@ let CTA_BUS_DB = function(options){
         return new Promise((fulfill,reject) => {
             try{
                 $.get(url, (data) => {
-                    fulfill(data);
+                    fulfill(data["bustime-response"] || data);
                 })    
             }catch(err){
                 reject(err);
@@ -41,8 +41,43 @@ let CTA_BUS_DB = function(options){
         return request('gettime');
     }
     
+    // return all routes serviced by system
+    function getRoutes(){
+        // TODO: implement caching for up to a day
+        return request('getroutes');
+    }
+    
+    // return possible directions of a given route (e.g. eastbound, westbound)
+    function getDirections(route){
+        // TODO: implement caching for up to a day
+        return request('getdirections', `rt=${route}`);
+    }
+    
+    // return set of stops for a specified route and direction
+    function getStops(route,direction){
+        // TODO: implement caching for up to a day
+        return request('getstops', `rt=${route}&dir=${direction}`);
+    }
+    
+    function getAllVehiclesInRoute(route){
+        return request('getvehicles', `rt=${route}&tmres=s`);
+    }
+    
+    function getVehicleInfo(vehicle_id){
+        if(typeof vehicle_id === "string"){
+            return request('getvehicles', `vid=${vehicle_id}&tmres=s`);
+        }else{ //given array of vehicle IDs
+            return request('getvehicles', `vid=${vehicle_id.join(",")}&tmres=s`);
+        }
+    }
+    
     return {
         init,
-        getSystemTime
+        getSystemTime,
+        getRoutes,
+        getDirections,
+        getStops,
+        getAllVehiclesInRoute,
+        getVehicleInfo
     };
 };
