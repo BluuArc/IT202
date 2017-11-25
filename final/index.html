@@ -142,7 +142,7 @@
           <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">location_on</i>Personal Marker List
         </a>
         <a class="mdc-list-item mdc-typography--display3" href="#" id="transportationMarkerListPage">
-          <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">directions_bus</i>Transportation Marker List
+          <i class="material-icons mdc-list-item__start-detail" aria-hidden="true">directions_bus</i>Transportation Information
         </a>
       </nav>
     </nav>
@@ -305,9 +305,53 @@
       </div>
     </div>
     <div class="page" id="transportationMarkerListPage">
+      <!-- selection section -->
+      <div class="mdc-layout-grid">
+        <div class="mdc-layout-grid__inner">
+          <div class="mdc-layout-grid__cell text-center">
+            <!-- select menu reference: https://material.io/components/web/catalog/input-controls/select-menus/-->
+            <div class="mdc-select" role="listbox" tabindex="0" id="route-selector">
+              <span class="mdc-select__selected-text">Select a Route</span>
+              <div class="mdc-simple-menu mdc-select__menu">
+                <ul class="mdc-list mdc-simple-menu__items" id="route-selector-list">
+                  <li class="mdc-list-item" role="option" id="default" aria-disabled="true">
+                    Select a Route
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="mdc-layout-grid__cell text-center">
+            <div class="mdc-select" role="listbox" tabindex="0" id="direction-selector">
+              <span class="mdc-select__selected-text">Select a Direction</span>
+              <div class="mdc-simple-menu mdc-select__menu">
+                <ul class="mdc-list mdc-simple-menu__items" id="direction-selector-list">
+                  <li class="mdc-list-item" role="option" id="default" aria-disabled="true">
+                    Select a Direction
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      
+      <!-- tab reference: https://material.io/components/web/catalog/tabs/ -->
+      <nav id="transportation-tab-bar" class="mdc-tab-bar mdc-tab-bar--icons-with-text">
+        <a class="mdc-tab mdc-tab--with-icon-and-text mdc-tab--active" href="#bus-stops">
+          <i class="material-icons mdc-tab__icon" aria-hidden="true">place</i>
+          <span class="mdc-tab__icon-text">Stop Information</span>
+        </a>
+        <a class="mdc-tab mdc-tab--with-icon-and-text" href="#buses">
+          <i class="material-icons mdc-tab__icon" aria-hidden="true">directions_bus</i>
+          <span class="mdc-tab__icon-text">Bus Information</span>
+        </a>
+        <span class="mdc-tab-bar__indicator"></span>
+      </nav>
       <!-- grid reference: https://material.io/components/web/catalog/layout-grid/ -->
       <div class="mdc-layout-grid">
-        <div class="mdc-layout-grid__inner" id="card-list">
+        <div class="mdc-layout-grid__inner screen" id="bus-stops">
           <div class="mdc-layout-grid__cell--span-12" id="transportMarkerTemplate">
             <!-- card reference: https://material.io/components/web/catalog/cards/ -->
             <div class="mdc-card">
@@ -318,6 +362,28 @@
               </section>
               <section class="mdc-card__supporting-text" id="transport-info">
                 Transport Information goes here
+              </section>
+              <section class="mdc-card__supporting-text" id="marker-notes">
+                Notes, if any.
+              </section>
+              <section class="mdc-card__actions">
+                <button class="mdc-button mdc-button--compact mdc-card__action" id="edit">Edit</button>
+                <button class="mdc-button mdc-button--compact mdc-card__action" id="remove">Remove</button>
+              </section>
+            </div>
+          </div>
+        </div>
+        <div class="mdc-layout-grid__inner screen" id="buses">
+          <div class="mdc-layout-grid__cell--span-12" id="transportMarkerTemplate">
+            <!-- card reference: https://material.io/components/web/catalog/cards/ -->
+            <div class="mdc-card">
+              <section class="mdc-card__primary">
+                <h1 class="mdc-card__title mdc-card__title--large" id="marker-name">Marker Title (Template)</h1>
+                <h2 class="mdc-card__subtitle" id="marker-location">Marker Location (Latitude, Longitude)</h2>
+                <h2 class="mdc-card__subtitle"><b>ID: </b><span id="marker-id">Marker ID</span></h2>
+              </section>
+              <section class="mdc-card__supporting-text" id="transport-info">
+                Transport Information about buses goes here
               </section>
               <section class="mdc-card__supporting-text" id="marker-notes">
                 Notes, if any.

@@ -40,8 +40,12 @@ var App = function(options){
                 currentLocationMarker: undefined
             },
             "#transportationMarkerListPage": {
-                name: "Transportation Markers",
-                drawer: true
+                name: "Transportation Information",
+                drawer: true,
+                tabbar: undefined,
+                route_selector: undefined,
+                direction_selector: undefined,
+                screens: ["#bus-stops", "#buses"]
             }
         },
         navbar: {
@@ -221,7 +225,7 @@ var App = function(options){
                         <h1 class="mdc-card__title mdc-card__title--large" id="marker-name">No Markers Found</h1>
                       </section>
                       <section class="mdc-card__supporting-text" id="marker-notes">
-                        Try adding a marker by clicking the button on the bottom left of the screeen.
+                        Try adding a marker by clicking the button on the bottom left of the screen.
                       </section>
                     </div>
                 </div>
@@ -319,7 +323,9 @@ var App = function(options){
     function initializePages(argument) {
         // all pages
         let pages = $(".pages");
+        let initPromises = [];
         
+        // move pages down
         pages.css("padding-top", $("#mainNavbar").height()*1.1);
         $("#mapPage #map").css("height", $("body").height() - $("#mainNavbar").height())
             .css("margin-top", '14px');
@@ -379,7 +385,7 @@ var App = function(options){
         //conditionally initialize map and marker fields
         ["#mapPage", "#markerListPage"].forEach(function(d,i){
             $(`.page${d}`).find("#addLocationButton").on("click", function(e){
-                showAddMarkerPage(d)
+                showAddMarkerPage(d);
             });
         });
         
@@ -387,6 +393,74 @@ var App = function(options){
         let markerMapHeight = Math.max($(".content").height()*0.95 - $("#addMarkerPage").height() - $("#addMarkerPage .mdc-card__actions").height(),200);
         $("#addMarkerPage #newMarkerMap").css("height", markerMapHeight)
         
+        // initialize transportationMarkerListPage
+        let optionTemplate = $(`
+            <li class="mdc-list-item" role="option" id="template" tabindex="0">
+                route number here
+            </li>
+        `), optionList = $("#route-selector-list"), dirList = $("#direction-selector-list");
+        let routeP = self.cta_bus_db.getRoutes().then((routeData) => {
+            // add routes to option list
+            for(let r of routeData.routes){
+                let option = optionTemplate.clone();
+                option.attr("id",`rt-${r.rt}`);
+                option.text(`${r.rt} - ${r.rtnm}`);
+                optionList.append(option);
+            }
+        });
+        initPromises.push(routeP);
+        let transportListPageData = self.pages["#transportationMarkerListPage"];
+        transportListPageData.tabbar = new mdc.tabs.MDCTabBar($("#transportationMarkerListPage #transportation-tab-bar").get(0));
+        transportListPageData.route_selector = new mdc.select.MDCSelect($("#transportationMarkerListPage #route-selector").get(0));
+        transportListPageData.direction_selector = new mdc.select.MDCSelect($("#transportationMarkerListPage #direction-selector").get(0));
+        
+        // change screen on click
+        $("#transportationMarkerListPage #transportation-tab-bar a").on("click",function(){
+            let curTab = $(this), delay = 125;
+            $("#transportationMarkerListPage .screen").each((i,v) => {
+                $(v).fadeOut(delay,() => {
+                    setTimeout(() => {
+                        $(".screen" + curTab.attr("href")).fadeIn(delay);
+                    },delay);
+                    
+                });
+            });
+            
+        });
+        $("#transportationMarkerListPage .screen#buses").hide();
+        
+        $("#transportationMarkerListPage #route-selector").css("width",'100%');
+        transportListPageData.route_selector.listen('MDCSelect:change', () => {
+            let select = transportListPageData.route_selector;
+            debug.log(`Selected "${select.selectedOptions[0].textContent}" at index ${select.selectedIndex} ` +
+                `with value "${select.value}"`);
+                
+            // get direction data for route
+            self.cta_bus_db.getDirections(select.value.slice(3))
+                .then((dirData) => {
+                    dirList.find("li[id!='default']").remove();
+                    dirList.find("span").text("Select a Direction");
+                    for(let d of dirData.directions){
+                        let dirOption = optionTemplate.clone();
+                        dirOption.attr("id", d.dir);
+                        dirOption.text(d.dir);
+                        dirList.append(dirOption);
+                    }
+                });
+        });
+        transportListPageData.direction_selector.listen('MDCSelect:change', () => {
+            let select = transportListPageData.direction_selector;
+            debug.log(`Selected "${select.selectedOptions[0].textContent}" at index ${select.selectedIndex} ` +
+                `with value "${select.value}"`);
+        });
+        
+        
+        
+        return Promise.all(initPromises);
+    }
+    
+    function loadStopAndBusInfo(route,location) {
+        // body...
     }
     
     function addMarker(options = {}){
@@ -563,7 +637,7 @@ var App = function(options){
         self.dialog.close();
         self.dialog.$object.hide();
         
-        initializePages();
+        let pageInit = initializePages();
         initializeServiceWorker();
         
         let dbInit = self.db.ready()
@@ -577,7 +651,7 @@ var App = function(options){
             });
         
         
-        return Promise.all([dbInit,mapInit])
+        return Promise.all([dbInit,mapInit, pageInit])
             .then(() => debug.log("Initialization finished"));
     }
     

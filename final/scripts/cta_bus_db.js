@@ -11,7 +11,10 @@ let CTA_BUS_DB = function(options){
         doEncodeURI: options.doEncodeURI,
         db: localforage.createInstance({
             name: "cta_bus_db"
-        })
+        }),
+        localCache: {
+            directions: {}
+        }
     };
     
     function request(endpoint,params){
@@ -19,7 +22,7 @@ let CTA_BUS_DB = function(options){
             endpoint + `?key=${self.key}&format=json` + (params ? `&${params}` : "");
         const url = (self.proxy || "") + (self.doEncodeURI ? encodeURIComponent(api_url) : api_url);
             
-        debug.log("requesting",url);
+        debug.log("requesting",api_url,"through proxy",self.proxy,"| final url:",url);
         return new Promise((fulfill,reject) => {
             try{
                 $.get(url, (data) => {
@@ -43,19 +46,34 @@ let CTA_BUS_DB = function(options){
     
     // return all routes serviced by system
     function getRoutes(){
-        // TODO: implement caching for up to a day
-        return request('getroutes');
+        // TODO: implement proper caching with DB for up to a day
+        if(self.localCache.routes){
+            return Promise.resolve(self.localCache.routes);
+        }else{
+            return request('getroutes').then((routeData) => {
+                self.localCache.routes = routeData;
+                return routeData;
+            });
+        }
     }
     
     // return possible directions of a given route (e.g. eastbound, westbound)
     function getDirections(route){
-        // TODO: implement caching for up to a day
-        return request('getdirections', `rt=${route}`);
+        // TODO: implement proper caching with DB for up to a day
+        let key = `r-${route}`;
+        if(self.localCache.directions[key]){
+            return Promise.resolve(self.localCache.directions[key]);
+        }else{
+            return request('getdirections', `rt=${route}`).then((directionData) => {
+                self.localCache.directions[key] = directionData;
+                return directionData;
+            });
+        }
+        
     }
     
     // return set of stops for a specified route and direction
     function getStops(route,direction){
-        // TODO: implement caching for up to a day
         return request('getstops', `rt=${route}&dir=${direction}`);
     }
     
