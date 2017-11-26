@@ -398,7 +398,9 @@ var App = function(options){
             <li class="mdc-list-item" role="option" id="template" tabindex="0">
                 route number here
             </li>
-        `), optionList = $("#route-selector-list"), dirList = $("#direction-selector-list");
+        `),
+        optionList = $("#route-selector-list"),
+        dirList = $("#direction-selector-list");
         let routeP = self.cta_bus_db.getRoutes().then((routeData) => {
             // add routes to option list
             for(let r of routeData.routes){
@@ -410,12 +412,13 @@ var App = function(options){
         });
         initPromises.push(routeP);
         let transportListPageData = self.pages["#transportationMarkerListPage"];
-        transportListPageData.tabbar = new mdc.tabs.MDCTabBar($("#transportationMarkerListPage #transportation-tab-bar").get(0));
-        transportListPageData.route_selector = new mdc.select.MDCSelect($("#transportationMarkerListPage #route-selector").get(0));
-        transportListPageData.direction_selector = new mdc.select.MDCSelect($("#transportationMarkerListPage #direction-selector").get(0));
+        let transportPage = $(".page#transportationMarkerListPage");
+        transportListPageData.tabbar = new mdc.tabs.MDCTabBar(transportPage.find("#transportation-tab-bar").get(0));
+        transportListPageData.route_selector = new mdc.select.MDCSelect(transportPage.find("#route-selector").get(0));
+        transportListPageData.direction_selector = new mdc.select.MDCSelect(transportPage.find("#direction-selector").get(0));
         
         // change screen on click
-        $("#transportationMarkerListPage #transportation-tab-bar a").on("click",function(){
+        transportPage.find("#transportation-tab-bar a").on("click",function(){
             let curTab = $(this), delay = 125;
             $("#transportationMarkerListPage .screen").each((i,v) => {
                 $(v).fadeOut(delay,() => {
@@ -427,9 +430,9 @@ var App = function(options){
             });
             
         });
-        $("#transportationMarkerListPage .screen#buses").hide();
+        transportPage.find(".screen#buses").hide();
         
-        $("#transportationMarkerListPage #route-selector").css("width",'100%');
+        transportPage.find("#route-selector").css("width",'100%');
         transportListPageData.route_selector.listen('MDCSelect:change', () => {
             let select = transportListPageData.route_selector;
             debug.log(`Selected "${select.selectedOptions[0].textContent}" at index ${select.selectedIndex} ` +
@@ -452,6 +455,11 @@ var App = function(options){
             let select = transportListPageData.direction_selector;
             debug.log(`Selected "${select.selectedOptions[0].textContent}" at index ${select.selectedIndex} ` +
                 `with value "${select.value}"`);
+                
+            let route = transportListPageData.route_selector.value.split("-")[1];
+            let direction = select.value;
+            
+            loadStopAndBusInfo(route,direction).then(showStopAndBusInfo).then(() => { debug.log("Finished loading transporation data"); });
         });
         
         
@@ -459,8 +467,145 @@ var App = function(options){
         return Promise.all(initPromises);
     }
     
-    function loadStopAndBusInfo(route,location) {
-        // body...
+    function loadStopAndBusInfo(route,direction){
+        let stops,bus;
+        
+        let stopPromise = self.cta_bus_db.getStops(route,direction)
+            .then((stopData) => {
+                stops = stopData.stops;
+                return;
+            });
+        let busPromise = self.cta_bus_db.getAllVehiclesInRoute(route)
+            .then((busData) => {
+                bus = busData.vehicle;
+                return;
+            });
+        return Promise.all([stopPromise,busPromise]).then(() => {
+            return {stops,bus};
+        });
+    }
+    
+    function showStopAndBusInfo(data) {
+        const prediction_constants = ["DUE","DLY"];
+        let page = $(".page#transportationMarkerListPage");
+        let stopList = page.find("#bus-stops"),
+            busList = page.find("#buses");    
+        let stopTemplate = page.find("#stopTemplate"),
+            busTemplate = page.find("#busTemplate"),
+            noDataMessage = "<li class='mdc-list-item'>No data found</li>";
+            
+        page.find(".stop-card[id!='stopTemplate']").remove();
+        page.find(".bus-card[id!='busTemplate']").remove();
+        
+        // load stop data
+        const stop_fields = ['stpnm','stpid'];
+        for(let s of data.stops){
+            let curStop = stopTemplate.clone();
+            curStop.attr("id","s-" + s.stpid);
+            stop_fields.map((f) => {
+                curStop.find("#" + f).text(s[f]);
+            });
+            
+            curStop.find("#stp-location")
+                .html(`<b>Lat/Lng: </b>${s.lat}/${s.lon}`);
+               
+            // TODO: Implement click handler for stop 
+            curStop.find("button#load").on("click",function(){
+                debug.log("Clicked button for stop",s);
+                
+                let optionList = curStop.find("#bus-list");
+                let optionTemplate = optionList.find("#template");
+                
+                // update list of buses
+                self.cta_bus_db.getStopPredictionData(s.stpid)
+                    .then((data) => {
+                        debug.log("Stop data",data);
+                        // change last update time
+                        curStop.find("#tmstmp").text(new Date().toLocaleString());
+                        
+                        // update list
+                        optionList.find("li[id!='template']").remove();
+                        if(!data.prd){
+                            optionList.append($(noDataMessage));
+                        }else{
+                            for(let b of data.prd){
+                                let curBus = optionTemplate.clone();
+                                curBus.attr("id","b-" + b.vid);
+                                curBus.find("#rt").text(b.rt);
+                                curBus.find("#prdctdn").text((prediction_constants.indexOf(b.prdctdn) > -1 ? b.prdctdn : (b.prdctdn + " MIN")) + (b.dly ? " (DELAYED)" : ""));
+                                optionList.append(curBus);
+                            }    
+                        }
+                    });
+            });
+                
+            stopList.append(curStop);
+            
+            // update map marker
+        }
+        
+        // load bus data
+        const bus_fields = ['rt','des','vid'];
+        for(let b of data.bus){
+            let curBus = busTemplate.clone();
+            curBus.attr("id","b-" + b.vid);
+            bus_fields.map((f) => {
+                curBus.find("#" + f).text(b[f]);
+            });
+            
+            // parse time stamp
+            let timestamp = new Date(
+                b.tmstmp.slice(4,6) + "/" + //month
+                b.tmstmp.slice(6,8) + "/" + //day
+                b.tmstmp.slice(0,4) + " " + //year
+                b.tmstmp.split(" ")[1] //time
+            );
+            curBus.find("#tmstmp").text(timestamp.toLocaleString());
+            
+            if(!b.dly){
+                curBus.find("#dly").hide();
+            }else{
+                curBus.find("#dly").show();
+            }
+            
+            curBus.find("#bus-location")
+                .html(`<b>Lat/Lng: </b>${b.lat}/${b.lon}`);
+                
+            // TODO: Implement click handler for bus 
+            curBus.find("button#load").on("click",function(){
+                debug.log("Clicked button for bus",b);
+                
+                let optionList = curBus.find("#stop-list");
+                let optionTemplate = optionList.find("#template");
+                
+                // update list of stos
+                self.cta_bus_db.getBusPredictionData(b.vid)
+                    .then((data) => {
+                        debug.log("Bus data",data);
+                        // change last update time
+                        curBus.find("#tmstmp").text(new Date().toLocaleString());
+                        
+                        // update list
+                        optionList.find("li[id!='template']").remove();
+                        if(!data.prd){
+                            optionList.append($(noDataMessage));
+                        }else{
+                            for(let s of data.prd){
+                                let curStop = optionTemplate.clone();
+                                curStop.attr("id","s-" + s.stpid);
+                                curStop.find("#stpnm").text(s.stpnm);
+                                curStop.find("#prdctdn").text((prediction_constants.indexOf(s.prdctdn) > -1 ? s.prdctdn : (s.prdctdn + " MIN")) + (s.dly ? " (DELAYED)" : ""));
+                                optionList.append(curStop);
+                            }
+                        }
+                    });
+            });
+            
+            busList.append(curBus);
+            
+            // update map marker
+        }
+        
     }
     
     function addMarker(options = {}){

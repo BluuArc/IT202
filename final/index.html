@@ -110,8 +110,36 @@
         text-align: center!important;
       }
       
-      #markerTemplate {
+      #markerTemplate, 
+      #transportationMarkerListPage #stopTemplate, 
+      #transportationMarkerListPage #busTemplate
+      {
         display: none;
+      }
+      
+      #transportationMarkerListPage .mdc-list-item__end-detail{
+        width: auto;
+      }
+      
+      #transportationMarkerListPage #transport-info .mdc-list {
+        max-height: 20em;
+        overflow-y: auto;
+      }
+      
+      /* border for lists */
+      /* based off of https://material.io/components/web/catalog/lists/ */
+      #transport-info ul {
+        padding-left: 0;
+        padding-right: 0;
+      }
+      
+      #transport-info ul .mdc-list-item {
+        padding: 0 16px;
+        border: 1px solid rgba(0, 0, 0, .12);
+      }
+      
+      #transport-info ul .mdc-list-item:not(:first-child) {
+        border-top: none;
       }
       
       @media(min-width: 1024px) {
@@ -336,7 +364,6 @@
         </div>
       </div>
       
-      
       <!-- tab reference: https://material.io/components/web/catalog/tabs/ -->
       <nav id="transportation-tab-bar" class="mdc-tab-bar mdc-tab-bar--icons-with-text">
         <a class="mdc-tab mdc-tab--with-icon-and-text mdc-tab--active" href="#bus-stops">
@@ -349,48 +376,53 @@
         </a>
         <span class="mdc-tab-bar__indicator"></span>
       </nav>
+      
       <!-- grid reference: https://material.io/components/web/catalog/layout-grid/ -->
       <div class="mdc-layout-grid">
         <div class="mdc-layout-grid__inner screen" id="bus-stops">
-          <div class="mdc-layout-grid__cell--span-12" id="transportMarkerTemplate">
+          <div class="mdc-layout-grid__cell--span-12 stop-card" id="stopTemplate">
             <!-- card reference: https://material.io/components/web/catalog/cards/ -->
             <div class="mdc-card">
               <section class="mdc-card__primary">
-                <h1 class="mdc-card__title mdc-card__title--large" id="marker-name">Marker Title (Template)</h1>
-                <h2 class="mdc-card__subtitle" id="marker-location">Marker Location (Latitude, Longitude)</h2>
-                <h2 class="mdc-card__subtitle"><b>ID: </b><span id="marker-id">Marker ID</span></h2>
+                <h1 class="mdc-card__title mdc-card__title--large" id="stpnm">Stop Name</h1>
+                <h2 class="mdc-card__subtitle" id="stp-location">Stop Location (Latitude, Longitude)</h2>
+                <h2 class="mdc-card__subtitle"><b>ID: </b><span id="stpid">Stop ID</span></h2>
+                <h2 class="mdc-card__subtitle"><b>Last Update: </b><span id="tmstmp">No Arrival Times Loaded</span></h2>
               </section>
               <section class="mdc-card__supporting-text" id="transport-info">
-                Transport Information goes here
-              </section>
-              <section class="mdc-card__supporting-text" id="marker-notes">
-                Notes, if any.
+                <!-- list reference: https://material.io/components/web/catalog/lists/-->
+                <ul class="mdc-list" id="bus-list">
+                  <li class="mdc-list-item" id="template"><span id="rt"><b>Route #</b></span><span class="mdc-list-item__end-detail" id="prdctdn"><b>Prediction Time Until Arrival</b></span></li>
+                  <li class="mdc-list-item">Press button to load data.</li>
+                </ul>
               </section>
               <section class="mdc-card__actions">
-                <button class="mdc-button mdc-button--compact mdc-card__action" id="edit">Edit</button>
-                <button class="mdc-button mdc-button--compact mdc-card__action" id="remove">Remove</button>
+                <!--<button class="mdc-button mdc-button--compact mdc-card__action" id="mapToggle">Favorite</button>-->
+                <button class="mdc-button mdc-button--compact mdc-card__action" id="load">Load Arrival Times</button>
               </section>
             </div>
           </div>
         </div>
         <div class="mdc-layout-grid__inner screen" id="buses">
-          <div class="mdc-layout-grid__cell--span-12" id="transportMarkerTemplate">
+          <div class="mdc-layout-grid__cell--span-12 bus-card" id="busTemplate">
             <!-- card reference: https://material.io/components/web/catalog/cards/ -->
             <div class="mdc-card">
               <section class="mdc-card__primary">
-                <h1 class="mdc-card__title mdc-card__title--large" id="marker-name">Marker Title (Template)</h1>
-                <h2 class="mdc-card__subtitle" id="marker-location">Marker Location (Latitude, Longitude)</h2>
-                <h2 class="mdc-card__subtitle"><b>ID: </b><span id="marker-id">Marker ID</span></h2>
+                <h1 class="mdc-card__title mdc-card__title--large"><span id="rt">Route #</span> - <span id="des">Destination</span></span></h1>
+                <h2 class="mdc-card__subtitle" id="bus-location">Bus Location (Latitude, Longitude)</h2>
+                <h2 class="mdc-card__subtitle"><b>ID: </b><span id="vid">Vehicle ID</span></h2>
+                <h2 class="mdc-card__subtitle"><b>Last Update: </b><span id="tmstmp">Update Time</span></h2>
+                <h2 class="mdc-card__subtitle" id="dly"><b><i>DELAYED</i></b></h2>
               </section>
               <section class="mdc-card__supporting-text" id="transport-info">
-                Transport Information about buses goes here
-              </section>
-              <section class="mdc-card__supporting-text" id="marker-notes">
-                Notes, if any.
+                <!-- list reference: https://material.io/components/web/catalog/lists/-->
+                <ul class="mdc-list" id="stop-list">
+                  <li class="mdc-list-item" id="template"><span id="stpnm"><b>Stop Name</b></span><span class="mdc-list-item__end-detail" id="prdctdn"><b>Prediction Time Until Arrival</b></span></li>
+                  <li class="mdc-list-item">Press button to load data.</li>
+                </ul>
               </section>
               <section class="mdc-card__actions">
-                <button class="mdc-button mdc-button--compact mdc-card__action" id="edit">Edit</button>
-                <button class="mdc-button mdc-button--compact mdc-card__action" id="remove">Remove</button>
+                <button class="mdc-button mdc-button--compact mdc-card__action" id="load">Refresh Data for This Bus</button>
               </section>
             </div>
           </div>

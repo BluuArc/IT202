@@ -89,6 +89,14 @@ let CTA_BUS_DB = function(options){
         }
     }
     
+    function getStopPredictionData(stop_id){
+        return request('getpredictions', `stpid=${stop_id}`);
+    }
+    
+    function getBusPredictionData(vehicle_id){
+        return request('getpredictions', `vid=${vehicle_id}`);
+    }
+    
     return {
         init,
         getSystemTime,
@@ -96,6 +104,8 @@ let CTA_BUS_DB = function(options){
         getDirections,
         getStops,
         getAllVehiclesInRoute,
-        getVehicleInfo
+        getVehicleInfo,
+        getStopPredictionData,
+        getBusPredictionData
     };
 };
