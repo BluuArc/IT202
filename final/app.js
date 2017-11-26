@@ -18,11 +18,12 @@ var App = function(options){
                 currentLocationMarker: undefined,
                 markers: [],
                 preload: () => {
-                    if(self.pages["#mapPage"].markers.length === 0){
-                        return getMarkers().then(showMarkersOnMapPage)
-                    }else{
-                        return Promise.resolve();
-                    }
+                    // if(self.pages["#mapPage"].markers.length === 0){
+                    //     return getMarkers().then(showMarkersOnMapPage)
+                    // }else{
+                    //     return Promise.resolve();
+                    // }
+                    return getMarkers().then(showMarkersOnMapPage);
                 }
             },
             "#markerListPage": {
@@ -54,8 +55,9 @@ var App = function(options){
         },
         markerIcons: {
             current: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png",
-            transportation: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
-            personal: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png"
+            station: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png",
+            personal: "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-violet.png",
+            bus: "assets/ic_directions_bus_black_24dp/web/ic_directions_bus_black_24dp_1x.png"
         },
         drawer: undefined,
         prev: undefined,
@@ -196,7 +198,12 @@ var App = function(options){
             card.find("#marker-id").text(markerInfo.id);
             card.find("#marker-location").html(`<b>Latitude/Longitude: </b>${markerInfo.coords.lat}/${markerInfo.coords.lng}`);
             card.find("#marker-notes").html( markerInfo.notes && markerInfo.notes.length > 0 ? markerInfo.notes : "No notes found.");
-            card.find("#marker-date").text(new Date(+markerInfo.id.split("-")[1]).toLocaleString());
+            
+            if(markerInfo.type === "personal"){
+                card.find("#marker-date").text(new Date(+markerInfo.id.split("-")[1]).toLocaleString());    
+            }else{
+                card.find("#marker-date").text(new Date(markerInfo.addTime).toLocaleString());
+            }
             card.find("button#edit").on("click", (e) => {
                 debug.log("Clicked edit for", markerInfo);
                 showAddMarkerPage("#markerListPage", markerInfo);
@@ -246,30 +253,78 @@ var App = function(options){
         page_data.markers.map((m) => { m.mapMarker.setMap(null) });
         
         let keys = Object.keys(markers);
-        page_data.markers = keys.map((m) => {
-            let marker = markers[m];
+        page_data.markers = [];
+        let loadPromises = [];
+        for(let k of keys){
+            let marker = markers[k];
             
-            // info window code referenced from https://developers.google.com/maps/documentation/javascript/examples/infowindow-simple
-            let window_content = `
-                <div class="infowindow">
-                    <h1>${marker.name || marker.id}</h1>
-                    <p><b>ID: </b>${marker.id}</p>
-                    <p><b>Latitude/Longitude: </b>${marker.coords.lat}/${marker.coords.lng}</p>
-                    <p>${marker.notes || "No notes found"}</p>
-                </div>
-            `;
-            marker.infoWindow = new google.maps.InfoWindow({
-                content: window_content
+            let loadPromise;
+            if(marker.type === "bus"){ //get updated bus location
+                loadPromise = self.cta_bus_db.getVehicleInfo(marker.vid)
+                    .then((busData) => {
+                        debug.log("showMarkersOnMapPage: Got bus data",busData);
+                        if(busData.error){
+                            return removeMarker(marker.id);
+                        }else{
+                            let busInfo = busData.vehicle[0];
+                            debug.log(busInfo);
+                            let window_content = `
+                                <div class="infowindow">
+                                    <h1>${marker.name || marker.id}</h1>
+                                    <p><b>ID: </b>${marker.id}</p>
+                                    <p><b>Latitude/Longitude: </b>${marker.coords.lat}/${marker.coords.lng}</p>
+                                    <p>${marker.notes || "No notes found"}</p>
+                                </div>
+                            `;
+                            marker.infoWindow = new google.maps.InfoWindow({
+                                content: window_content
+                            });
+                            marker.mapMarker = new google.maps.Marker({
+                                position: {
+                                    lat: +busInfo.lat,
+                                    lng: +busInfo.lon
+                                },
+                                map: page_data.map,
+                                title: marker.name,
+                                icon: self.markerIcons[marker.type]
+                            });
+                            marker.mapMarker.addListener('click', () => marker.infoWindow.open(page_data.map, marker.mapMarker));
+                            page_data.markers.push(marker);
+                            return;
+                        }
+                    });
+            }else{
+                loadPromise = Promise.resolve().then(() => {
+                    // info window code referenced from https://developers.google.com/maps/documentation/javascript/examples/infowindow-simple
+                    let window_content = `
+                        <div class="infowindow">
+                            <h1>${marker.name || marker.id}</h1>
+                            <p><b>ID: </b>${marker.id}</p>
+                            <p><b>Latitude/Longitude: </b>${marker.coords.lat}/${marker.coords.lng}</p>
+                            <p>${marker.notes || "No notes found"}</p>
+                        </div>
+                    `;
+                    marker.infoWindow = new google.maps.InfoWindow({
+                        content: window_content
+                    });
+                    marker.mapMarker = new google.maps.Marker({
+                        position: marker.coords,
+                        map: page_data.map,
+                        title: marker.name,
+                        icon: self.markerIcons[marker.type]
+                    });
+                    marker.mapMarker.addListener('click', () => marker.infoWindow.open(page_data.map, marker.mapMarker));
+                    page_data.markers.push(marker);
+                    return;
+                });
+            }
+            loadPromises.push(loadPromise);
+        }
+        return Promise.all(loadPromises)
+            .then(() => {
+                debug.log("Markers", page_data.markers);
+                return;
             });
-            marker.mapMarker = new google.maps.Marker({
-                position: marker.coords,
-                map: page_data.map,
-                title: marker.name,
-                icon: self.markerIcons[marker.type]
-            });
-            marker.mapMarker.addListener('click', () => marker.infoWindow.open(page_data.map, marker.mapMarker));
-            return marker;
-        });
     }
     
     // separate function needed for custom filling of fields
@@ -508,115 +563,201 @@ var App = function(options){
         page.find(".stop-card[id!='stopTemplate']").remove();
         page.find(".bus-card[id!='busTemplate']").remove();
         
-        // load stop data
-        const stop_fields = ['stpnm','stpid'];
-        for(let s of data.stops){
-            let curStop = stopTemplate.clone();
-            curStop.attr("id","s-" + s.stpid);
-            stop_fields.map((f) => {
-                curStop.find("#" + f).text(s[f]);
-            });
-            
-            curStop.find("#stp-location")
-                .html(`<b>Lat/Lng: </b>${s.lat}/${s.lon}`);
-               
-            // TODO: Implement click handler for stop 
-            curStop.find("button#load").on("click",function(){
-                debug.log("Clicked button for stop",s);
+        getMarkers().then((markerData) => {
+            // load stop data
+            const stop_fields = ['stpnm','stpid'];
+            for(let s of data.stops){
+                let curStop = stopTemplate.clone();
+                curStop.attr("id","s-" + s.stpid);
+                stop_fields.map((f) => {
+                    curStop.find("#" + f).text(s[f]);
+                });
                 
-                let optionList = curStop.find("#bus-list");
-                let optionTemplate = optionList.find("#template");
+                curStop.find("#stp-location")
+                    .html(`<b>Lat/Lng: </b>${s.lat}/${s.lon}`);
+
+                curStop.find("button#load").on("click",function(){
+                    debug.log("Clicked button for stop",s);
+                    
+                    let optionList = curStop.find("#bus-list");
+                    let optionTemplate = optionList.find("#template");
+                    
+                    // update list of buses
+                    self.cta_bus_db.getStopPredictionData(s.stpid)
+                        .then((data) => {
+                            debug.log("Stop data",data);
+                            // change last update time
+                            curStop.find("#tmstmp").text(new Date().toLocaleString());
+                            
+                            // update list
+                            optionList.find("li[id!='template']").remove();
+                            if(!data.prd){
+                                optionList.append($(noDataMessage));
+                            }else{
+                                for(let b of data.prd){
+                                    let curBus = optionTemplate.clone();
+                                    curBus.attr("id","b-" + b.vid);
+                                    curBus.find("#rt").text(b.rt);
+                                    curBus.find("#prdctdn").text((prediction_constants.indexOf(b.prdctdn) > -1 ? b.prdctdn : (b.prdctdn + " MIN")) + (b.dly ? " (DELAYED)" : ""));
+                                    optionList.append(curBus);
+                                }    
+                            }
+                        });
+                });
                 
-                // update list of buses
-                self.cta_bus_db.getStopPredictionData(s.stpid)
-                    .then((data) => {
-                        debug.log("Stop data",data);
-                        // change last update time
-                        curStop.find("#tmstmp").text(new Date().toLocaleString());
-                        
-                        // update list
-                        optionList.find("li[id!='template']").remove();
-                        if(!data.prd){
-                            optionList.append($(noDataMessage));
-                        }else{
-                            for(let b of data.prd){
-                                let curBus = optionTemplate.clone();
-                                curBus.attr("id","b-" + b.vid);
-                                curBus.find("#rt").text(b.rt);
-                                curBus.find("#prdctdn").text((prediction_constants.indexOf(b.prdctdn) > -1 ? b.prdctdn : (b.prdctdn + " MIN")) + (b.dly ? " (DELAYED)" : ""));
-                                optionList.append(curBus);
-                            }    
+                let mapButton = curStop.find("button#map-toggle");
+                
+                let marker_key = `s-${s.stpid}`;
+                mapButton.on("click",function(){
+                    getMarkers().then((markerData) => {
+                        if(markerData[marker_key]){ //remove marker
+                           removeMarker(marker_key)
+                            .then(() => getMarkers().then(showMarkersOnMapPage)) //update map
+                            .then(() => {
+                                mapButton.text("Show on Map");
+                                mapButton.removeClass("mdc-button--raised");
+                            });
+                        }else{ //add marker
+                            let marker = {
+                                coords: {
+                                    lat: +s.lat,
+                                    lng: +s.lon
+                                },
+                                id: marker_key,
+                                stpid: s.stpid,
+                                name: s.stpnm,
+                                notes: "This is a station marker. You can add your own notes here in the Personal Marker List page.",
+                                type: "station",
+                                visibility: true,
+                                addTime: new Date().toLocaleString()
+                            };
+                            addMarker(marker)
+                                .then(() => {
+                                    mapButton.text("Hide on Map");
+                                    mapButton.addClass("mdc-button--raised");
+                                });
                         }
                     });
-            });
+                    
+                });
                 
-            stopList.append(curStop);
-            
-            // update map marker
-        }
-        
-        // load bus data
-        const bus_fields = ['rt','des','vid'];
-        for(let b of data.bus){
-            let curBus = busTemplate.clone();
-            curBus.attr("id","b-" + b.vid);
-            bus_fields.map((f) => {
-                curBus.find("#" + f).text(b[f]);
-            });
-            
-            // parse time stamp
-            let timestamp = new Date(
-                b.tmstmp.slice(4,6) + "/" + //month
-                b.tmstmp.slice(6,8) + "/" + //day
-                b.tmstmp.slice(0,4) + " " + //year
-                b.tmstmp.split(" ")[1] //time
-            );
-            curBus.find("#tmstmp").text(timestamp.toLocaleString());
-            
-            if(!b.dly){
-                curBus.find("#dly").hide();
-            }else{
-                curBus.find("#dly").show();
+                // update button based on current marker cache
+                if(markerData[marker_key]){
+                    mapButton.text("Hide on Map");
+                    mapButton.addClass("mdc-button--raised");
+                }else{
+                    mapButton.text("Show on Map");
+                    mapButton.removeClass("mdc-button--raised");
+                }
+                    
+                stopList.append(curStop);
             }
             
-            curBus.find("#bus-location")
-                .html(`<b>Lat/Lng: </b>${b.lat}/${b.lon}`);
+            // load bus data
+            const bus_fields = ['rt','des','vid'];
+            for(let b of data.bus){
+                let curBus = busTemplate.clone();
+                curBus.attr("id","b-" + b.vid);
+                bus_fields.map((f) => {
+                    curBus.find("#" + f).text(b[f]);
+                });
                 
-            // TODO: Implement click handler for bus 
-            curBus.find("button#load").on("click",function(){
-                debug.log("Clicked button for bus",b);
+                // parse time stamp
+                let timestamp = new Date(
+                    b.tmstmp.slice(4,6) + "/" + //month
+                    b.tmstmp.slice(6,8) + "/" + //day
+                    b.tmstmp.slice(0,4) + " " + //year
+                    b.tmstmp.split(" ")[1] //time
+                );
+                curBus.find("#tmstmp").text(timestamp.toLocaleString());
                 
-                let optionList = curBus.find("#stop-list");
-                let optionTemplate = optionList.find("#template");
+                if(!b.dly){
+                    curBus.find("#dly").hide();
+                }else{
+                    curBus.find("#dly").show();
+                }
                 
-                // update list of stos
-                self.cta_bus_db.getBusPredictionData(b.vid)
-                    .then((data) => {
-                        debug.log("Bus data",data);
-                        // change last update time
-                        curBus.find("#tmstmp").text(new Date().toLocaleString());
-                        
-                        // update list
-                        optionList.find("li[id!='template']").remove();
-                        if(!data.prd){
-                            optionList.append($(noDataMessage));
-                        }else{
-                            for(let s of data.prd){
-                                let curStop = optionTemplate.clone();
-                                curStop.attr("id","s-" + s.stpid);
-                                curStop.find("#stpnm").text(s.stpnm);
-                                curStop.find("#prdctdn").text((prediction_constants.indexOf(s.prdctdn) > -1 ? s.prdctdn : (s.prdctdn + " MIN")) + (s.dly ? " (DELAYED)" : ""));
-                                optionList.append(curStop);
+                curBus.find("#bus-location")
+                    .html(`<b>Lat/Lng: </b>${b.lat}/${b.lon}`);
+                    
+                // TODO: Implement click handler for bus 
+                curBus.find("button#load").on("click",function(){
+                    debug.log("Clicked button for bus",b);
+                    
+                    let optionList = curBus.find("#stop-list");
+                    let optionTemplate = optionList.find("#template");
+                    
+                    // update list of stos
+                    self.cta_bus_db.getBusPredictionData(b.vid)
+                        .then((data) => {
+                            debug.log("Bus data",data);
+                            // change last update time
+                            curBus.find("#tmstmp").text(new Date().toLocaleString());
+                            
+                            // update list
+                            optionList.find("li[id!='template']").remove();
+                            if(!data.prd){
+                                optionList.append($(noDataMessage));
+                            }else{
+                                for(let s of data.prd){
+                                    let curStop = optionTemplate.clone();
+                                    curStop.attr("id","s-" + s.stpid);
+                                    curStop.find("#stpnm").text(s.stpnm);
+                                    curStop.find("#prdctdn").text((prediction_constants.indexOf(s.prdctdn) > -1 ? s.prdctdn : (s.prdctdn + " MIN")) + (s.dly ? " (DELAYED)" : ""));
+                                    optionList.append(curStop);
+                                }
                             }
-                        }
+                        });
+                });
+                
+                let mapButton = curBus.find("button#map-toggle");
+                
+                let marker_key = `b-${b.vid}`;
+                mapButton.on("click",function(){
+                    getMarkers().then((markerData) => {
+                       if(markerData[marker_key]) { //remove marker
+                           removeMarker(marker_key)
+                            .then(() => getMarkers().then(showMarkersOnMapPage)) //update map
+                            .then(() => {
+                                mapButton.text("Show on Map");
+                                mapButton.removeClass("mdc-button--raised");
+                            });
+                       }else{
+                           let marker = {
+                               coords: {
+                                   lat: +b.lat,
+                                   lng: +b.lon
+                               },
+                               id: marker_key,
+                               vid: b.vid,
+                               name: b.rt + " - " + b.des,
+                               notes: "This is a vehicle marker. You can add your own notes here in the Personal Marker List page.",
+                               type: "bus",
+                               visibility: true,
+                               addTime: new Date().toLocaleString()
+                           };
+                           addMarker(marker)
+                            .then(() => {
+                                mapButton.text("Hide on Map");
+                                mapButton.addClass("mdc-button--raised");
+                            });
+                       }
                     });
-            });
-            
-            busList.append(curBus);
-            
-            // update map marker
-        }
-        
+                });
+                
+                // update button based on current marker cache
+                if(markerData[marker_key]){
+                    mapButton.text("Hide on Map");
+                    mapButton.addClass("mdc-button--raised");
+                }else{
+                    mapButton.text("Show on Map");
+                    mapButton.removeClass("mdc-button--raised");
+                }
+                
+                busList.append(curBus);
+            }
+             
+        });
     }
     
     function addMarker(options = {}){
