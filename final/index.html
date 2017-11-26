@@ -503,10 +503,27 @@
     let app;
     
     $(document).ready(function() {
+      // get a quote for the loading screen
+      // reference: https://css-tricks.com/using-the-wp-api-to-fetch-posts/
+      $.ajax({
+        url: "https://quotesondesign.com/wp-json/posts?filter[orderby]=rand&filter[posts_per_page]=1",
+        crossDomain: true,
+        success: function(data){
+            console.log("Quote Data",data);
+            let quoteData = data[0];
+            loadQuote(quoteData);
+        },
+        cache: false
+      });
+      
+      
       app = new App();
       app.init();
     });
     
+    function loadQuote(quoteData){
+      $("#loading-screen #quote").html(`${quoteData.content}- <a href="${quoteData.link}">${quoteData.title}</a>`);
+    }
     
   </script>
 </body>

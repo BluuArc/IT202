@@ -878,20 +878,8 @@ var App = function(options){
             debug.log("Finished updating DB");
         })
     }
-
-    function loadQuote(){
-        // grab a quote for the loading screen
-        // reference: https://quotesondesign.com/api-v4-0/
-        $.getJSON("https://quotesondesign.com/wp-json/posts?filter[orderby]=rand&filter[posts_per_page]=1",(data) => {
-            debug.log("Quote Data",data);
-            let quoteData = data[0];
-            $("#loading-screen #quote").html(`${quoteData.content}- <a href="${quoteData.link}">${quoteData.title}</a>`);
-        });
-    }
     
     function init() {
-        loadQuote();
-        
         mdc.autoInit();
         
         // intiialize navbar
