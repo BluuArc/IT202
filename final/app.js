@@ -2,7 +2,7 @@
 /* global mdc $ localforage */
 var App = function(options){
     let debug = {
-        mode: location.hostname.indexOf("c9users.io") > -1 || location.hostname.indexOf("127.0.0.1") > -1,
+        mode: true, //location.hostname.indexOf("c9users.io") > -1 || location.hostname.indexOf("127.0.0.1") > -1,
         log: function(...args){ if(this.mode) console.log('[App]',...args); }
     };
     let self = {
