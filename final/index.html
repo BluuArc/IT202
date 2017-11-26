@@ -148,6 +148,44 @@
       #load-button {
         width: 100%;
       }
+      
+      #loading-screen {
+        /* fill entire screen */
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        background: var(--mdc-theme-primary);
+        
+        /* on top of everything*/
+        z-index: 500;
+        
+        /* stand out from the background */
+        color: var(--mdc-theme-background);
+      }
+      
+      #loading-screen a {
+        color: var(--mdc-theme-background);
+      }
+      
+      #loading-icon {
+        font-size: 7rem;
+        font-weight: 300;
+        line-height: 7rem;
+        margin-bottom: 0;
+        animation-name: loading-rotation;
+        animation-duration: 1s;
+        animation-iteration-count: infinite;
+      }
+      
+      @keyframes loading-rotation {
+        from {
+          transform: rotate(0deg);
+        }
+        
+        to {
+          transform: rotate(360deg);
+        }
+      }
    
     </style>
 </head>
@@ -230,9 +268,22 @@
         <p class="mdc-typography--body1">
           <ul>
             <li><b>App Version: </b><span id="appVersion">0.0.0</span></li>
+            <li><b>Project Description: </b> The project is a navigation application. The user is able to create and save markers from wherever they are currently at, make notes about those markers, and view them on the map. The application also shows transportation information, including information about station locations and arrival times (where applicable).</li>
           </ul>
         </p>
         <a class="mdc-button" href="https://docs.google.com/document/d/17K52EtIM7A2S5ORIVUXEdGOVlVfjGoUlhJ6GG1Vq23Q/edit" target="_blank">Project Document</a>
+        <a class="mdc-button" href="https://github.com/BluuArc/IT202/tree/master/final" target="_blank">Source Code</a>
+        <h2 class="mdc-typography--display2">Data Sources and References</h2>
+        <p class="mdc-typography--body1">
+          <ul>
+            <li><a href="https://developers.google.com/maps/">Google Maps API</a> for map visualizations</li>
+            <li><a href="https://material.io/">Material Design Components</a> for UI components</li>
+            <li><a href="http://www.transitchicago.com/developers/bustracker.aspx">CTA Bus Tracker API for bus and station data</a></li>
+            <li><a href="https://quotesondesign.com/api-v4-0/">Quotes on Design API</a> for quotes on the loading screen</li>
+            <li><a href="https://jquery.com/">jQuery</a> for processing and displaying data and UI interactions</li>
+            <li><a href="https://localforage.github.io/localForage/">localForage</a> for locally saving your marker data.</li>
+          </ul>
+        </p>
       </div>
     </div>
       
@@ -434,6 +485,12 @@
         </div>
       </div>
     </div>
+  </div>
+  
+  <div id="loading-screen" class="text-center mdc-typography">
+    <p class="mdc-typography--display4 material-icons" id="loading-icon">hourglass_empty</p>
+    <p class="mdc-typography--display3">Loading...</p>
+    <p class="mdc-typography--display1" id="quote">Insert interesting quote here to distract you while the page is loading.</p>
   </div>
 
   <script src="https://code.jquery.com/jquery-3.2.1.min.js" crossorigin="anonymous"></script>
