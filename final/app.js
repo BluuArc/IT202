@@ -417,6 +417,11 @@ var App = function(options){
         transportListPageData.route_selector = new mdc.select.MDCSelect(transportPage.find("#route-selector").get(0));
         transportListPageData.direction_selector = new mdc.select.MDCSelect(transportPage.find("#direction-selector").get(0));
         
+        // hide button and add ripple
+        let main_load_button = transportPage.find("#load-button");
+        mdc.ripple.MDCRipple.attachTo(main_load_button.get(0));
+        main_load_button.hide();
+        
         // change screen on click
         transportPage.find("#transportation-tab-bar a").on("click",function(){
             let curTab = $(this), delay = 125;
@@ -433,10 +438,13 @@ var App = function(options){
         transportPage.find(".screen#buses").hide();
         
         transportPage.find("#route-selector").css("width",'100%');
+        transportPage.find("#direction-selector").css("width",'100%');
         transportListPageData.route_selector.listen('MDCSelect:change', () => {
             let select = transportListPageData.route_selector;
             debug.log(`Selected "${select.selectedOptions[0].textContent}" at index ${select.selectedIndex} ` +
                 `with value "${select.value}"`);
+                
+            main_load_button.hide();
                 
             // get direction data for route
             self.cta_bus_db.getDirections(select.value.slice(3))
@@ -456,12 +464,15 @@ var App = function(options){
             debug.log(`Selected "${select.selectedOptions[0].textContent}" at index ${select.selectedIndex} ` +
                 `with value "${select.value}"`);
                 
+            main_load_button.show();
+        });
+        
+        main_load_button.on("click",() => {
             let route = transportListPageData.route_selector.value.split("-")[1];
-            let direction = select.value;
+            let direction = transportListPageData.direction_selector.value;
             
             loadStopAndBusInfo(route,direction).then(showStopAndBusInfo).then(() => { debug.log("Finished loading transporation data"); });
         });
-        
         
         
         return Promise.all(initPromises);

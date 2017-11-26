@@ -101,6 +101,13 @@
         bottom: 1rem;
         left: 1rem;
       }
+         
+      @media(min-width: 1024px) {
+         .app-fab--absolute {
+          bottom: 1.5rem;
+          left: 1.5rem;
+        }
+      }
       
       #addLocationButton {
         z-index: 1;
@@ -142,12 +149,10 @@
         border-top: none;
       }
       
-      @media(min-width: 1024px) {
-         .app-fab--absolute {
-          bottom: 1.5rem;
-          left: 1.5rem;
-        }
+      #load-button {
+        width: 100%;
       }
+   
     </style>
 </head>
 
@@ -336,7 +341,7 @@
       <!-- selection section -->
       <div class="mdc-layout-grid">
         <div class="mdc-layout-grid__inner">
-          <div class="mdc-layout-grid__cell text-center">
+          <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-12 text-center">
             <!-- select menu reference: https://material.io/components/web/catalog/input-controls/select-menus/-->
             <div class="mdc-select" role="listbox" tabindex="0" id="route-selector">
               <span class="mdc-select__selected-text">Select a Route</span>
@@ -349,7 +354,7 @@
               </div>
             </div>
           </div>
-          <div class="mdc-layout-grid__cell text-center">
+          <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-12 text-center">
             <div class="mdc-select" role="listbox" tabindex="0" id="direction-selector">
               <span class="mdc-select__selected-text">Select a Direction</span>
               <div class="mdc-simple-menu mdc-select__menu">
@@ -360,6 +365,9 @@
                 </ul>
               </div>
             </div>
+          </div>
+          <div class="mdc-layout-grid__cell mdc-layout-grid__cell--span-12 text-center">
+            <button class="mdc-button mdc-button--raised" id="load-button"><i class="mdc-button__icon material-icons">input</i> Load Transportation Data</button>
           </div>
         </div>
       </div>
