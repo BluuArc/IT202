@@ -933,7 +933,8 @@ var App = function(options){
         self.dialog.close();
         self.dialog.$object.hide();
         
-        let pageInit = initializePages();
+        let pageInit = initializePages()
+            .then(() => debug.log("Pages ready"));
         initializeServiceWorker();
         
         let dbInit = self.db.ready()
@@ -943,6 +944,7 @@ var App = function(options){
             
         let mapInit = showCurrentLocation(self.pages["#mapPage"])
             .then(() => {
+                debug.log("Map ready")
                 setTimeout(() => setPageTo("#generalPage"), 150); //delayed change
             });
         
