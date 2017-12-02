@@ -83,7 +83,7 @@ FriendlyChat.prototype.loadMessages = function() {
   const numPrevMessages = 12;
   let setMassage = function (data) {
     let val = data.val();
-    this.displayMessage(data.key,val.name,val.text,val.photoURL,val.imageUri);
+    this.displayMessage(data.key,val.name,val.text,val.photoURL,val.imageUri || val.imageUrl);
   }.bind(this);
   this.messagesRef.limitToLast(numPrevMessages).on('child_added', setMassage);
   this.messagesRef.limitToLast(numPrevMessages).on('child_changed', setMassage);
@@ -104,15 +104,24 @@ FriendlyChat.prototype.saveMessage = function(e) {
       // clear message text field and SEND button state
       FriendlyChat.resetMaterialTextfield(this.messageInput);
       this.toggleButton();
-    }.bind(this)).catch(error => console.error('Error writing new message to Firebase Database', error));
+    }.bind(this))
+    .catch(error => console.error('Error writing new message to Firebase Database', error));
   }
 };
 
 // Sets the URL of the given img element with the URL of the image stored in Cloud Storage.
 FriendlyChat.prototype.setImageUrl = function(imageUri, imgElement) {
-  imgElement.src = imageUri;
-
-  // TODO(DEVELOPER): If image is on Cloud Storage, fetch image URL and set img element's src.
+  // if image is a cloud storage UIR, fetch the URL
+  console.log(imageUri);
+  if(imageUri.startsWith('gs://')){
+    imgElement.src = FriendlyChat.LOADING_IMAGE_URL; // display a loading image first
+    this.storage.refFromURL(imageUri).getMetadata().then(function(metadata){
+      // update image with actual URL
+      imgElement.src = metadata.downloadURLs[0];
+    });
+  }else{
+    imgElement.src = imageUri;
+  }
 };
 
 // Saves a new message containing an image URI in Firebase.
@@ -135,9 +144,23 @@ FriendlyChat.prototype.saveImageMessage = function(event) {
   }
   // Check if the user is signed-in
   if (this.checkSignedInWithMessage()) {
+    let currentUser = this.auth.currentUser;
 
-    // TODO(DEVELOPER): Upload image to Firebase storage and add message.
-
+    // add a message with a loading icon that will get update with the shared image
+    this.messagesRef.push({
+      name: currentUser.displayName,
+      imageUrl: FriendlyChat.LOADING_IMAGE_URL,
+      photoURL: currentUser.photoURL || 'images/profile_placeholder.png'
+    }).then(function(data){
+      // Upload image to Firebase storage
+      let filePath = `${currentUser.uid}/${data.key}/${file.name}`;
+      return this.storage.ref(filePath).put(file).then(function(snapshot){
+        // get the file's storage UIR and update chat message palceholder
+        let fullPath = snapshot.metadata.fullPath;
+        return data.update({imageUrl: this.storage.ref(fullPath).toString()});
+      }.bind(this));
+    }.bind(this))
+    .catch(error => console.error('There was an error uploading a file to Cloud Storage:', error));
   }
 };
 
