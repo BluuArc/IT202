@@ -70,8 +70,23 @@ FriendlyChat.prototype.initFirebase = function() {
 };
 
 // Loads chat messages history and listens for upcoming ones.
+// Note: doesn't get called until user sucessfully logs in
 FriendlyChat.prototype.loadMessages = function() {
-  // TODO(DEVELOPER): Load and listens for new messages.
+  // Load and listens for new messages.
+  // reference /messages/ database path
+  this.messagesRef = this.database.ref('messages');
+
+  // remove all previous listeners
+  this.messagesRef.off();
+
+  // load last X messages and listend for newOnes
+  const numPrevMessages = 12;
+  let setMassage = function (data) {
+    let val = data.val();
+    this.displayMessage(data.key,val.name,val.text,val.photoURL,val.imageUri);
+  }.bind(this);
+  this.messagesRef.limitToLast(numPrevMessages).on('child_added', setMassage);
+  this.messagesRef.limitToLast(numPrevMessages).on('child_changed', setMassage);
 };
 
 // Saves a new message on the Firebase DB.
