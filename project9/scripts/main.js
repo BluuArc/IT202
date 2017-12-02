@@ -112,7 +112,6 @@ FriendlyChat.prototype.saveMessage = function(e) {
 // Sets the URL of the given img element with the URL of the image stored in Cloud Storage.
 FriendlyChat.prototype.setImageUrl = function(imageUri, imgElement) {
   // if image is a cloud storage UIR, fetch the URL
-  console.log(imageUri);
   if(imageUri.startsWith('gs://')){
     imgElement.src = FriendlyChat.LOADING_IMAGE_URL; // display a loading image first
     this.storage.refFromURL(imageUri).getMetadata().then(function(metadata){
@@ -232,12 +231,27 @@ FriendlyChat.prototype.checkSignedInWithMessage = function() {
 
 // Saves the messaging device token to the datastore.
 FriendlyChat.prototype.saveMessagingDeviceToken = function() {
-  // TODO(DEVELOPER): Save the device token in the realtime datastore
+  firebase.messaging().getToken().then(function(currentToken) {
+    if(currentToken) {
+      console.log('Got FCM device token:', currentToken);
+
+      // Save the device token in the realtime datastore
+      firebase.database().ref('/fcmTokens').child(currentToken)
+        .set(firebase.auth().currentUser.uid);
+    }else{
+      // request permission to show notifications
+      this.requestNotificationsPermissions();
+    }
+  }.bind(this)).catch(error => console.error('Unable to get messaging token.',error));
 };
 
 // Requests permissions to show notifications.
 FriendlyChat.prototype.requestNotificationsPermissions = function() {
-  // TODO(DEVELOPER): Request permissions to send notifications.
+  console.log('Requesting notifications permission...');
+  firebase.messaging().requestPermission().then(function () {
+    // notification permission granted
+    this.saveMessagingDeviceToken();
+  }.bind(this)).catch(error => console.error('Unable to get permission ot notify.',error));
 };
 
 // Resets the given MaterialTextField.
