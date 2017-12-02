@@ -94,9 +94,17 @@ FriendlyChat.prototype.saveMessage = function(e) {
   e.preventDefault();
   // Check that the user entered a message and is signed in.
   if (this.messageInput.value && this.checkSignedInWithMessage()) {
-
-    // TODO(DEVELOPER): push new message to Firebase.
-
+    let currentUser = this.auth.currentUser;
+    // add a new message entry to the Firebase Database
+    this.messagesRef.push({
+      name: currentUser.displayName,
+      text: this.messageInput.value,
+      photoURL: currentUser.photoURL || 'images/profile_placeholder.png'
+    }).then(function(){
+      // clear message text field and SEND button state
+      FriendlyChat.resetMaterialTextfield(this.messageInput);
+      this.toggleButton();
+    }.bind(this)).catch(error => console.error('Error writing new message to Firebase Database', error));
   }
 };
 
