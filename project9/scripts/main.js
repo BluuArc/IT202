@@ -15,8 +15,10 @@
  */
 
 // Source: https://github.com/firebase/friendlychat-web, web-start folder
-// Follow this tutorial: https://codelabs.developers.google.com/codelabs/firebase-web/index.html#0
+// Followed this tutorial: https://codelabs.developers.google.com/codelabs/firebase-web/index.html#0
 'use strict';
+
+/* global firebase */
 
 // Initializes FriendlyChat.
 function FriendlyChat() {
@@ -58,7 +60,13 @@ function FriendlyChat() {
 
 // Sets up shortcuts to Firebase features and initiate firebase auth.
 FriendlyChat.prototype.initFirebase = function() {
-  // TODO(DEVELOPER): Initialize Firebase.
+  this.auth = firebase.auth();
+  this.database = firebase.database();
+  this.storage = firebase.storage();
+
+  // init for firebase auth
+  // sets it up so that once someone attempts to sign in, this.onAuthStateChanged is called
+  this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
 };
 
 // Loads chat messages history and listens for upcoming ones.
@@ -112,20 +120,24 @@ FriendlyChat.prototype.saveImageMessage = function(event) {
 
 // Signs-in Friendly Chat.
 FriendlyChat.prototype.signIn = function() {
-  // TODO(DEVELOPER): Sign in Firebase with credential from the Google user.
+  // Sign in Firebase with credential from the Google user.
+  // use popup auth and Google as identity provider
+  let provider = new firebase.auth.GoogleAuthProvider();
+  this.auth.signInWithPopup(provider);
 };
 
 // Signs-out of Friendly Chat.
 FriendlyChat.prototype.signOut = function() {
-  // TODO(DEVELOPER): Sign out of Firebase.
+  // Sign out of Firebase.
+  this.auth.signOut();
 };
 
 // Triggers when the auth state change for instance when the user signs-in or signs-out.
 FriendlyChat.prototype.onAuthStateChanged = function(user) {
   if (user) { // User is signed in!
     // Get profile pic and user's name from the Firebase user object.
-    var profilePicUrl = null;   // TODO(DEVELOPER): Get profile pic.
-    var userName = null;        // TODO(DEVELOPER): Get user's name.
+    let profilePicUrl = user.photoURL;  // Get profile pic.
+    let userName = user.displayName;    // Get user's name.
 
     // Set the user's profile pic and name.
     this.userPic.style.backgroundImage = 'url(' + profilePicUrl + ')';
@@ -157,7 +169,11 @@ FriendlyChat.prototype.onAuthStateChanged = function(user) {
 
 // Returns true if user is signed-in. Otherwise false and displays a message.
 FriendlyChat.prototype.checkSignedInWithMessage = function() {
-  /* TODO(DEVELOPER): Check if user is signed-in Firebase. */
+  /* Check if user is signed-in Firebase. */
+  // return true of user is signed in Firebase
+  if(this.auth.currentUser){
+    return true;
+  }
 
   // Display a message to the user using a Toast.
   var data = {
