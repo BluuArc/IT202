@@ -67,6 +67,11 @@ FriendlyChat.prototype.initFirebase = function() {
   // init for firebase auth
   // sets it up so that once someone attempts to sign in, this.onAuthStateChanged is called
   this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
+
+  // show button if not on firebase page
+  if(location.hostname.indexOf('firebaseapp.com') === -1){
+    document.getElementById('firebase-redirect').removeAttribute('hidden');
+  }
 };
 
 // Loads chat messages history and listens for upcoming ones.
