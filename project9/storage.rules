@@ -1,0 +1,9 @@
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{userId}/{timeStamp}/{fileName} {
+      // only allow users to write to their own folder
+      allow write: if request.auth.uid == userId;
+      allow read;
+    }
+  }
+}
