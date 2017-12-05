@@ -7,18 +7,23 @@ import { AppComponent } from './app.component';
 import { HeroesComponent } from './heroes/heroes.component';
 import { HeroDetailComponent } from './hero-detail/hero-detail.component';
 
+import { HeroService } from './hero.service';
+import { MessagesComponent } from './messages/messages.component';
+import { MessageService } from './message.service';
+
 
 @NgModule({
-  declarations: [
+  declarations: [ //allows usage of selectors of these components in any component
     AppComponent,
     HeroesComponent,
-    HeroDetailComponent
+    HeroDetailComponent,
+    MessagesComponent
   ],
   imports: [
     BrowserModule,
     FormsModule
   ],
-  providers: [],
+  providers: [ HeroService, MessageService ], //provides data
   bootstrap: [AppComponent]
 })
 export class AppModule { }
