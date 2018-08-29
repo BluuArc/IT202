@@ -1,0 +1,76 @@
+<!-- Source: https://developers.google.com/maps/documentation/javascript/examples/infowindow-simple -->
+
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <title>App 18</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <style>
+     
+    </style>
+  </head>
+  <body>
+    <div class="container">
+        <!--<input type="textarea" name="" id="inputText"/>-->
+         <textarea rows="4" cols="50" id="inputText">Enter something to translate.</textarea> 
+        
+        <button id="submitBtn" class="btn">Translate</button>
+        
+        <div id="results">Translation will show up here</div>
+        <button id="speakBtn" class="btn">Say It</button>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDtM4dgeealfD7wENvFp-OEtm0RL1HoJlM"></script>
+    <script>
+        let translateBtn, text, result, speakBtn;
+        $(document).ready(() => {
+            translateBtn = $("#submitBtn");
+            text = $("#inputText");
+            result = $("#results");
+            speakBtn = $("#speakBtn");
+            translateBtn.on('click', () => {
+                console.log(text.val())
+                getTranslation(text.val())
+                    .then(data => {
+                        console.log("translationData",data);
+                        let resultString = "";
+                        for(let t of data.data.translations){
+                            resultString = t.translatedText + "<br>";
+                        }
+                        result.html(resultString);
+                    });
+            });
+            
+            speakBtn.on('click', () => say(result.text()));
+        });
+        
+        function getTranslation(input){
+            const url = `https://translation.googleapis.com/language/translate/v2?q=${input}&target=es&format=text&source=en&key=AIzaSyDFE9BAasevH_Kg_JXbC-G2TI2yFkAlw9I`;
+            return new Promise((fulfill,reject) => {
+                $.get(url, (data) => {
+                    fulfill(data);
+                });
+            });
+        }
+        
+        // source: https://developers.google.com/web/updates/2014/01/Web-apps-that-talk-Introduction-to-the-Speech-Synthesis-API
+        function say(text){
+            var msg = new SpeechSynthesisUtterance();
+            var voices = window.speechSynthesis.getVoices();
+            msg.voice = voices[Math.floor(Math.random() * voices.length)];
+            msg.voiceURI = 'native';
+            msg.volume = 1; // 0 to 1
+            msg.rate = 1; // 0.1 to 10
+            msg.pitch = 2; //0 to 2
+            msg.text = text;
+            msg.lang = 'en-US';
+            speechSynthesis.speak(msg);
+        }
+    </script>
+    
+  </body>
+</html>
